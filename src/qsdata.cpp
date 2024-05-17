@@ -1,4 +1,4 @@
-#include "qsdata.h"
+#include "assets/qsdata.h"
 
 QSData::QSData(QObject *parent)
     : QObject{parent}

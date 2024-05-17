@@ -1,4 +1,4 @@
-#include "oauthimplicit.h"
+#include "assets/oauthimplicit.h"
 
 OAuth2ImplicitGrant::OAuth2ImplicitGrant(QObject *parent)
     : QAbstractOAuth2(parent) {

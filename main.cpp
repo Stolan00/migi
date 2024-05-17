@@ -1,10 +1,10 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "qsdata.h"
-#include "anilist.h"
-#include "filewriter.h"
-#include "settings.h"
+#include "assets/qsdata.h"
+#include "assets/anilist.h"
+#include "assets/filewriter.h"
+#include "assets/settings.h"
 #include <QMetaType>
 
 int main(int argc, char *argv[])

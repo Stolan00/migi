@@ -1,4 +1,4 @@
-#include "settings.h"
+#include "assets/settings.h"
 
 QMutex Settings::mutex;
 

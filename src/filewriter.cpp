@@ -1,4 +1,4 @@
-#include "filewriter.h"
+#include "assets/filewriter.h"
 
 FileWriter::FileWriter(QObject *parent)
     : QObject{parent}

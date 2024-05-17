@@ -1,6 +1,6 @@
-#include "networkmanager.h"
-#include "oauthimplicit.h"
-#include "settings.h"
+#include "assets/networkmanager.h"
+#include "assets/oauthimplicit.h"
+#include "assets/settings.h"
 #include <QNetworkRequest>
 
 NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
@@ -49,6 +49,7 @@ QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUr
 
 }
 
+// Helper function for constructing request with provided headers
 QNetworkRequest NetworkManager::createRequest(const QUrl &url, const QJsonObject &headers) {
     QNetworkRequest request(url);
 

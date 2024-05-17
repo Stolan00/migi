@@ -18,14 +18,22 @@ qt_add_qml_module(appanilist_project
     VERSION 1.0
     QML_FILES
         Main.qml
-        SOURCES networkmanager.h networkmanager.cpp
-        SOURCES qsdata.h qsdata.cpp
-        SOURCES anilist.h anilist.cpp
-        SOURCES oauthimplicit.h oauthimplicit.cpp
-        SOURCES filewriter.h filewriter.cpp
-        SOURCES settings.h settings.cpp
-        SOURCES appsettingskey.h appsettingskey.cpp
-    )
+    SOURCES
+        src/networkmanager.cpp
+        src/qsdata.cpp
+        src/anilist.cpp
+        src/oauthimplicit.cpp
+        src/filewriter.cpp
+        src/settings.cpp
+        src/appsettingskey.cpp
+        assets/networkmanager.h
+        assets/qsdata.h
+        assets/anilist.h
+        assets/oauthimplicit.h
+        assets/filewriter.h
+        assets/settings.h
+        assets/appsettingskey.h
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

@@ -1,5 +1,5 @@
-#include "anilist.h"
-#include "filewriter.h"
+#include "assets/anilist.h"
+#include "assets/filewriter.h"
 
 #include <QDebug>
 
