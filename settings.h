@@ -19,6 +19,7 @@ public:
 
     // explicit Settings(QObject *parent = nullptr);
 
+    //TODO: these should probably be slots instead
     static bool setValue(const AppSettingsKey key, const QVariant& value);
     static QVariant value(const AppSettingsKey key);
 

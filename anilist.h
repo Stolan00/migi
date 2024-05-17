@@ -4,7 +4,7 @@
 #include "networkmanager.h"
 #include "qsdata.h"
 #include <QObject>
-
+#include "settings.h"
 
 class Anilist : public QObject
 {
@@ -15,9 +15,10 @@ class Anilist : public QObject
     NetworkManager m_netRequest;
     QSData strings;
 
-    QUrl m_anilist_url;
+    QUrl m_anilistUrl;
 
-    int i = 5;
+    Settings& m_settings = Settings::instance();
+
 
 public:
 //     //explicit anilist(QObject *parent = nullptr);

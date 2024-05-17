@@ -7,15 +7,24 @@ NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
     qRegisterMetaType<QJsonObject>();
 }
 
-void NetworkManager::sendRequest(const QByteArray &postData, const QUrl &url) {
-    QNetworkRequest request(url);
+void NetworkManager::printJsonObject(const QJsonObject& obj) {
+    QJsonDocument doc(obj);
+    QString strJson(doc.toJson(QJsonDocument::Indented)); // Use QJsonDocument::Compact for non-formatted output
+    qDebug() << strJson;
+}
 
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+void NetworkManager::configureOAuth2(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl) {
+    OAuth2ImplicitGrant oauth2;
 
-    request.setRawHeader("Accept", "application/json");
-    request.setRawHeader("User-Agent", "Qt Application");
+    oauth2.grant();
+}
 
-    QNetworkReply *reply = manager.post(request, postData);
+QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers) {
+    Settings& settings = Settings::instance();
+
+    QNetworkRequest request = createRequest(url, headers);
+
+    QNetworkReply* reply = manager.post(request, postData);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
@@ -37,22 +46,20 @@ void NetworkManager::sendRequest(const QByteArray &postData, const QUrl &url) {
         emit responseReceived(responseData);
         reply->deleteLater();
     });
+
 }
 
-void NetworkManager::printJsonObject(const QJsonObject& obj) {
-    QJsonDocument doc(obj);
-    QString strJson(doc.toJson(QJsonDocument::Indented)); // Use QJsonDocument::Compact for non-formatted output
-    qDebug() << strJson;
-}
+QNetworkRequest NetworkManager::createRequest(const QUrl &url, const QJsonObject &headers) {
+    QNetworkRequest request(url);
 
-void NetworkManager::configureOAuth2(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl) {
-    OAuth2ImplicitGrant oauth2;
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    oauth2.grant();
-}
+    // Set the Authorization header if the access token is provided
 
-QNetworkReply* NetworkManager::authRequest(const QByteArray& postData, const QUrl& url) {
-    Settings& settings = Settings::instance();
+    // Loop through the headers JSON object and set headers
+    for (auto it = headers.constBegin(); it != headers.constEnd(); ++it) {
+        request.setRawHeader(it.key().toUtf8(), it.value().toString().toUtf8());
+    }
 
-
+    return request;
 }

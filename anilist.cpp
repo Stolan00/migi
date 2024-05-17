@@ -1,18 +1,17 @@
 #include "anilist.h"
 #include "filewriter.h"
-#include "settings.h"
+
 #include <QDebug>
 
-Anilist::Anilist() : m_anilist_url("https://graphql.anilist.co") {
-    Settings& settings = Settings::instance();
+Anilist::Anilist() : m_anilistUrl("https://graphql.anilist.co") {
 
-    if (settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
+    if (m_settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
         FileWriter fileManager;
         QString token = fileManager.readFile(QString("token.txt")); // This should prompt the user to authorize in the future
 
-        settings.setValue(AppSettingsKey::AccountAnilistToken, token);
+        m_settings.setValue(AppSettingsKey::AccountAnilistToken, token);
 
-        if ( !settings.value( AppSettingsKey::AccountAnilistToken ).isNull() )
+        if ( !m_settings.value( AppSettingsKey::AccountAnilistToken ).isNull() )
             qDebug() << "Token Written";
 
         else qDebug() << "Failed to write token";
@@ -34,7 +33,13 @@ void Anilist::search_anime() {
     QJsonDocument document(query);
     QByteArray postData = document.toJson();
 
-    m_netRequest.sendRequest(postData, m_anilist_url);
+    QJsonObject headers {
+        {"Content-Type", "application/json"},
+        {"Accept", "application/json"},
+        {"Authorization", QJsonValue(m_settings.value(AppSettingsKey::AccountAnilistToken).toString())}
+    };
+
+    m_netRequest.postRequest(postData, m_anilistUrl, headers);
 }
 
 void Anilist::configureOAuth2() {

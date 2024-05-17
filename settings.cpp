@@ -21,7 +21,7 @@ bool Settings::setValue(const AppSettingsKey key, const QVariant& value) {
 
     QSettings settings;
 
-    settings.setValue(toString(key), value);
+    settings.setValue( toString(key), value );
 
     settings.sync();
 
@@ -36,7 +36,8 @@ QVariant Settings::value(const AppSettingsKey key) {
 
     QVariant settingDoesNotExist; // Default QVariant constructor is null
 
-    return settings.value(toString(key), settingDoesNotExist); // Will return null variant if no setting exists, can be checked with .isNull()
+    return settings.value( toString(key), settingDoesNotExist ); // Will return null variant if no setting exists, can be checked with .isNull()
+                                                                // dont think thats accurate actually
 }
 
 QObject* Settings::create(QQmlEngine *engine, QJSEngine *scriptEngine) {
