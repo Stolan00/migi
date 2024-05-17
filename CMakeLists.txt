@@ -24,6 +24,7 @@ qt_add_qml_module(appanilist_project
         SOURCES oauthimplicit.h oauthimplicit.cpp
         SOURCES filewriter.h filewriter.cpp
         SOURCES settings.h settings.cpp
+        SOURCES appsettingskey.h appsettingskey.cpp
     )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

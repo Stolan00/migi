@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Controls
+import AppSettings
+
 
 Window {
     width: 640
@@ -39,8 +41,8 @@ Window {
         Flickable {
             width: 600
             height: 600
-            anchors.left: anime_pic.right
             anchors.leftMargin: 5
+            anchors.left: anime_pic.right
 
             Text
             {

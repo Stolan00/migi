@@ -4,15 +4,15 @@
 #include <QDebug>
 
 Anilist::Anilist() : m_anilist_url("https://graphql.anilist.co") {
-    Settings settings;
+    Settings& settings = Settings::instance();
 
-    if (settings.value("anilist_token").isNull()) {
+    if (settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
         FileWriter fileManager;
         QString token = fileManager.readFile(QString("token.txt")); // This should prompt the user to authorize in the future
 
-        settings.setValue("anilist_token", token);
+        settings.setValue(AppSettingsKey::AccountAnilistToken, token);
 
-        if ( !settings.value( "anilist_token" ).isNull() )
+        if ( !settings.value( AppSettingsKey::AccountAnilistToken ).isNull() )
             qDebug() << "Token Written";
 
         else qDebug() << "Failed to write token";

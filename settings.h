@@ -3,20 +3,33 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QSettings>
+#include <QMutex>
+#include "appsettingskey.h"
+
 //i dont know if this class needs to be a singleton or not, i assume no but maybe it should
 class Settings : public QObject
 {
     Q_OBJECT
-    QML_ELEMENT
-
-    QSettings m_settings;
+    QML_SINGLETON
 
 public:
-    explicit Settings(QObject *parent = nullptr);
+    static Settings& instance();
+    Settings(const Settings&) = delete;
+    Settings& operator=(const Settings&) = delete;
 
-    bool setValue(const QAnyStringView key, const QVariant& value);
-    QVariant value(QAnyStringView key) const;
+    // explicit Settings(QObject *parent = nullptr);
+
+    static bool setValue(const AppSettingsKey key, const QVariant& value);
+    static QVariant value(const AppSettingsKey key);
+
+    static QObject* create(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 signals:
+
+private:
+    Settings();
+    ~Settings();
+
+    static QMutex mutex; // thread safety
 };
 

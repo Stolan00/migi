@@ -1,5 +1,6 @@
 #include "networkmanager.h"
 #include "oauthimplicit.h"
+#include "settings.h"
 #include <QNetworkRequest>
 
 NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
@@ -15,6 +16,7 @@ void NetworkManager::sendRequest(const QByteArray &postData, const QUrl &url) {
     request.setRawHeader("User-Agent", "Qt Application");
 
     QNetworkReply *reply = manager.post(request, postData);
+
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
             qDebug() << "Network request error:" << reply->errorString();
@@ -47,15 +49,10 @@ void NetworkManager::configureOAuth2(const QString& clientId, const QUrl& authUr
     OAuth2ImplicitGrant oauth2;
 
     oauth2.grant();
+}
+
+QNetworkReply* NetworkManager::authRequest(const QByteArray& postData, const QUrl& url) {
+    Settings& settings = Settings::instance();
 
 
-
-    // QOAuth2AuthorizationCodeFlow oauth2;
-    // oauth2.setClientIdentifier(clientId);
-    // oauth2.setAuthorizationUrl(authUrl);
-    // oauth2.setAccessTokenUrl(accessUrl);
-
-
-    // connect(&oauth2, &QOAuth2AuthorizationCodeFlow::authorizeWithBrowser, &QDesktopServices::openUrl);
-    // oauth2.grant();
 }

@@ -22,7 +22,9 @@ signals:
     void responseReceived(const QJsonObject&response);
 
 public slots:
-    void sendRequest(const QByteArray &postData, const QUrl &url);
+    void sendRequest(const QByteArray& postData, const QUrl& url); //i dont think this should be void but it works currently because its a slot
+    QNetworkReply* authRequest(const QByteArray& postData, const QUrl& url);
+
 
 private:
     QNetworkAccessManager manager; //used to be a pointer not sure why

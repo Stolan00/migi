@@ -4,6 +4,7 @@
 #include "qsdata.h"
 #include "anilist.h"
 #include "filewriter.h"
+#include "settings.h"
 #include <QMetaType>
 
 int main(int argc, char *argv[])
@@ -14,6 +15,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Migi");
 
     QQmlApplicationEngine engine;
+
+    qmlRegisterSingletonType<Settings>("AppSettings", 1, 0, "Settings", Settings::create);
 
     Anilist anilist;
     engine.rootContext()->setContextProperty("anilist", &anilist);

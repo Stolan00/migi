@@ -1,25 +1,47 @@
 #include "settings.h"
 
-Settings::Settings(QObject *parent)
-    : QObject{parent}
-{
-    qDebug() << "QSettings file path:" << m_settings.fileName();
+QMutex Settings::mutex;
+
+Settings& Settings::instance() {
+    QMutexLocker locker(&mutex);
+    static Settings instance;
+    return instance;
+}
+
+Settings::Settings() {
 
 }
 
-bool Settings::setValue(const QAnyStringView key, const QVariant& value) {
-    m_settings.setValue(key, value);
+Settings::~Settings() {
 
-    m_settings.sync();
-
-    qDebug() << "QSettings file path:" << m_settings.fileName();
-
-    return true;
 }
 
-QVariant Settings::value(QAnyStringView key) const {
+
+bool Settings::setValue(const AppSettingsKey key, const QVariant& value) {
+
+    QSettings settings;
+
+    settings.setValue(toString(key), value);
+
+    settings.sync();
+
+    qDebug() << "QSettings file path:" << settings.fileName();
+
+    return settings.contains( toString(key) );
+}
+
+QVariant Settings::value(const AppSettingsKey key) {
+
+    QSettings settings;
 
     QVariant settingDoesNotExist; // Default QVariant constructor is null
 
-    return m_settings.value(key, settingDoesNotExist); // Will return null variant if no setting exists, can be checked with .isNull()
+    return settings.value(toString(key), settingDoesNotExist); // Will return null variant if no setting exists, can be checked with .isNull()
+}
+
+QObject* Settings::create(QQmlEngine *engine, QJSEngine *scriptEngine) {
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+    qDebug() << "Settings::create called";
+    return &instance();
 }
