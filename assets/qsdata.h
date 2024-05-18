@@ -8,7 +8,7 @@ class QSData : public QObject
 
 public:
     explicit QSData(QObject *parent = nullptr);
-    QString animeInfo;
+    QString animeInfo, viewerId;
 
 signals:
 };

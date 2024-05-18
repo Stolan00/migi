@@ -35,6 +35,10 @@ qt_add_qml_module(appanilist_project
         assets/appsettingskey.h
 )
 
+# Add the assets directory to the include directories
+target_include_directories(appanilist_project
+    PRIVATE assets
+)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

@@ -29,5 +29,6 @@ signals:
     void responseReceived(const QJsonObject &response);
 
 public slots:
-    void search_anime();
+    void searchAnime();
+    void getViewerId();
 };

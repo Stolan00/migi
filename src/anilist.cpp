@@ -19,7 +19,7 @@ Anilist::Anilist() : m_anilistUrl("https://graphql.anilist.co") {
     } else qDebug() << "Token already exists";
 }
 
-void Anilist::search_anime() {
+void Anilist::searchAnime() {
     connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
 
     QJsonObject variables;
@@ -48,4 +48,27 @@ void Anilist::configureOAuth2() {
             accessUrl = "https://anilist.co/api/v2/oauth/pin";
 
     m_netRequest.configureOAuth2(clientID, authUrl, accessUrl);
+}
+
+void Anilist::getViewerId() {
+    connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
+
+    QJsonObject variables;
+
+    variables["id"] = "486"; //TODO: May want to add a constructSearch function later or something that returns json qbytearray
+
+    QJsonObject query;
+    query["query"] = strings.viewerId;
+    query["variables"] = variables;
+
+    QJsonDocument document(query);
+    QByteArray postData = document.toJson();
+
+    QJsonObject headers {
+        {"Content-Type", "application/json"},
+        {"Accept", "application/json"},
+        {"Authorization", QJsonValue(m_settings.value(AppSettingsKey::AccountAnilistToken).toString())}
+    };
+
+    m_netRequest.postRequest(postData, m_anilistUrl, headers);
 }

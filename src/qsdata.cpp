@@ -39,4 +39,10 @@ QSData::QSData(QObject *parent)
             }\
         }\
     }";
+
+    viewerId = "query{\
+        Viewer{\
+            id\
+        }\
+    }";
 }
