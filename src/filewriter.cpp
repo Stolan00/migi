@@ -1,11 +1,11 @@
 #include "assets/filewriter.h"
-
+// --------------------------------------------------------------------------------------------------------------------------
 FileWriter::FileWriter(QObject *parent)
     : QObject{parent}
 {
     qRegisterMetaType<QString>();
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 void FileWriter::writeFile(const QString path, const QString value) {
     QFile file(path);
 
@@ -22,7 +22,7 @@ void FileWriter::writeFile(const QString path, const QString value) {
 
     file.close();
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 QString FileWriter::readFile(const QString& path) {
     QFile file(path);
 
@@ -36,3 +36,4 @@ QString FileWriter::readFile(const QString& path) {
 
     return contents;
 }
+// --------------------------------------------------------------------------------------------------------------------------

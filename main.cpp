@@ -1,7 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include "assets/qsdata.h"
 #include "assets/anilist.h"
 #include "assets/filewriter.h"
 #include "assets/settings.h"
@@ -20,9 +19,6 @@ int main(int argc, char *argv[])
 
     Anilist anilist;
     engine.rootContext()->setContextProperty("anilist", &anilist);
-
-    QSData strings;
-    engine.rootContext()->setContextProperty("strings", &strings);
 
     FileWriter fw;
     engine.rootContext()->setContextProperty("fileWriter", &fw);

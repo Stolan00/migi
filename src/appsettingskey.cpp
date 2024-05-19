@@ -1,5 +1,5 @@
 #include "assets/appsettingskey.h"
-
+// --------------------------------------------------------------------------------------------------------------------------
 QString toString(AppSettingsKey key) {
     static const QMap<AppSettingsKey, QString> keyToString {
 

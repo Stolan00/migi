@@ -2,7 +2,6 @@
 
 #include "qqmlintegration.h"
 #include "networkmanager.h"
-#include "qsdata.h"
 #include <QObject>
 #include "settings.h"
 
@@ -13,11 +12,12 @@ class Anilist : public QObject
     QML_SINGLETON
 
     NetworkManager m_netRequest;
-    QSData strings;
 
     QUrl m_anilistUrl;
 
     Settings& m_settings = Settings::instance();
+
+    QString readResourceFile(const QString &resourcePath);
 
 
 public:

@@ -1,5 +1,5 @@
 #include "assets/oauthimplicit.h"
-
+// --------------------------------------------------------------------------------------------------------------------------
 OAuth2ImplicitGrant::OAuth2ImplicitGrant(QObject *parent)
     : QAbstractOAuth2(parent) {
     connect(this, &QAbstractOAuth::authorizeWithBrowser,
@@ -11,7 +11,7 @@ OAuth2ImplicitGrant::OAuth2ImplicitGrant(QObject *parent)
     //setScope("email");
     //setRedirectUri(QUrl("http://localhost/callback"));
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 void OAuth2ImplicitGrant::grant() {
     QUrl url = authorizationUrl();
     QUrlQuery query;
@@ -25,3 +25,4 @@ void OAuth2ImplicitGrant::grant() {
     url.setQuery(query);
     emit authorizeWithBrowser(url);
 }
+// --------------------------------------------------------------------------------------------------------------------------

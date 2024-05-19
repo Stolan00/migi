@@ -2,23 +2,23 @@
 #include "assets/oauthimplicit.h"
 #include "assets/settings.h"
 #include <QNetworkRequest>
-
+// --------------------------------------------------------------------------------------------------------------------------
 NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
     qRegisterMetaType<QJsonObject>();
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 void NetworkManager::printJsonObject(const QJsonObject& obj) {
     QJsonDocument doc(obj);
     QString strJson(doc.toJson(QJsonDocument::Indented)); // Use QJsonDocument::Compact for non-formatted output
     qDebug() << strJson;
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 void NetworkManager::configureOAuth2(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl) {
     OAuth2ImplicitGrant oauth2;
 
     oauth2.grant();
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers) {
     Settings& settings = Settings::instance();
 
@@ -48,7 +48,7 @@ QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUr
     });
 
 }
-
+// --------------------------------------------------------------------------------------------------------------------------
 // Helper function for constructing request with provided headers
 QNetworkRequest NetworkManager::createRequest(const QUrl &url, const QJsonObject &headers) {
     QNetworkRequest request(url);
@@ -64,3 +64,4 @@ QNetworkRequest NetworkManager::createRequest(const QUrl &url, const QJsonObject
 
     return request;
 }
+// --------------------------------------------------------------------------------------------------------------------------

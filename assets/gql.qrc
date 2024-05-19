@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/assets/gql">
+        <file alias="Media.gql">gql/Media.gql</file>
+        <file alias="MediaListCollection.gql">gql/MediaListCollection.gql</file>
+        <file alias="MediaFields.gql">gql/MediaFields.gql</file>
+        <file alias="ViewerId.gql">gql/ViewerId.gql</file>
+        <file alias="MediaListFields.gql">gql/MediaListFields.gql</file>
+    </qresource>
+</RCC>
