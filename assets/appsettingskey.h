@@ -6,6 +6,7 @@
 enum class AppSettingsKey {
     // Account settings
     AccountAnilistToken,
+    AccountAnilistViewerId,
 
     // Display settings
     DisplayTheme,
@@ -17,4 +18,4 @@ enum class AppSettingsKey {
 };
 
 // Function to convert AppSettingKey to QString
-QString toString(AppSettingsKey key);
+QString settingsToString(AppSettingsKey key);

@@ -20,22 +20,25 @@ bool Settings::setValue(const AppSettingsKey key, const QVariant& value) {
 
     QSettings settings;
 
-    settings.setValue( toString(key), value );
+    settings.setValue( settingsToString( key ), value );
 
     settings.sync();
 
     qDebug() << "QSettings file path:" << settings.fileName();
 
-    return settings.contains( toString(key) );
+    return settings.contains( settingsToString( key ) );
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QVariant Settings::value(const AppSettingsKey key) {
 
     QSettings settings;
 
-    QVariant settingDoesNotExist; // Default QVariant constructor is null
+    QAnyStringView path = settingsToString(key);
 
-    return settings.value( toString(key), settingDoesNotExist ); // Will return null variant if no setting exists, can be checked with .isNull()
+    QVariant result = settings.value( path );
+
+
+    return result.toString();//, settingDoesNotExist ); // Will return null variant if no setting exists, can be checked with .isNull()
                                                                 // dont think thats accurate actually
 }
 // --------------------------------------------------------------------------------------------------------------------------

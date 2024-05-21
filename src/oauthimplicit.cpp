@@ -4,12 +4,6 @@ OAuth2ImplicitGrant::OAuth2ImplicitGrant(QObject *parent)
     : QAbstractOAuth2(parent) {
     connect(this, &QAbstractOAuth::authorizeWithBrowser,
             &QDesktopServices::openUrl);
-
-    setAuthorizationUrl(QUrl("https://anilist.co/api/v2/oauth/authorize"));//?client_id=18259&response_type=token"));
-    setClientIdentifier("18259");
-    setResponseType("token");
-    //setScope("email");
-    //setRedirectUri(QUrl("http://localhost/callback"));
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void OAuth2ImplicitGrant::grant() {
@@ -24,5 +18,14 @@ void OAuth2ImplicitGrant::grant() {
 
     url.setQuery(query);
     emit authorizeWithBrowser(url);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void OAuth2ImplicitGrant::configure(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl) {
+    setAuthorizationUrl(QUrl("https://anilist.co/api/v2/oauth/authorize"));//?client_id=18259&response_type=token"));
+    setClientIdentifier("18259");
+    setResponseType("token");
+
+    //setScope("email");
+    //setRedirectUri(QUrl("http://localhost/callback"));
 }
 // --------------------------------------------------------------------------------------------------------------------------

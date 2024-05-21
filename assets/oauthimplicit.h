@@ -11,6 +11,7 @@ class OAuth2ImplicitGrant : public QAbstractOAuth2 {
 
 public:
     explicit OAuth2ImplicitGrant(QObject *parent = nullptr);
+    void configure(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl);
 
 public slots:
     void grant();
@@ -18,3 +19,4 @@ public slots:
 private:
     QOAuth2AuthorizationCodeFlow oauth;
 };
+

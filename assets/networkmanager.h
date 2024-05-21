@@ -10,22 +10,32 @@
 #include <QOAuthHttpServerReplyHandler>
 #include <QUrl>
 #include <QDesktopServices>
+#include <QQmlEngine>
 
 class NetworkManager : public QObject {
     Q_OBJECT
 public:
-    explicit NetworkManager(QObject *parent = nullptr);
+    static NetworkManager& instance();
+    NetworkManager(const NetworkManager&) = delete;
+    NetworkManager& operator=(const NetworkManager&) = delete;
+
     void printJsonObject(const QJsonObject& obj);
     void configureOAuth2(const QString& clientId, const QUrl& authUrl, const QUrl& accessUrl);
+
+    static QObject* create(QQmlEngine *engine, QJSEngine *scriptEngine);
+
 
 signals:
     void responseReceived(const QJsonObject&response);
 
 public slots:
-    QNetworkReply* postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers);
     QNetworkRequest createRequest(const QUrl &url , const QJsonObject &headers);
-
+    QNetworkReply*  postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers);
+    QJsonObject     replyToJson(QNetworkReply* reply);
 
 private:
+    NetworkManager();
+    ~NetworkManager();
     QNetworkAccessManager manager; //used to be a pointer not sure why
+
 };

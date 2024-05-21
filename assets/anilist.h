@@ -5,24 +5,22 @@
 #include <QObject>
 #include "settings.h"
 
+//TODO: make "service"/"website" ABC?
 class Anilist : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
 
-    NetworkManager m_netRequest;
+    NetworkManager& m_netRequest = NetworkManager::instance();
 
-    QUrl m_anilistUrl;
+    QUrl m_anilistUrl = QUrl("https://graphql.anilist.co");
+    QUrl m_aniListAuthUrl = QUrl("https://anilist.co/api/v2/oauth/authorize");
 
     Settings& m_settings = Settings::instance();
 
-    QString readResourceFile(const QString &resourcePath);
-
-
 public:
-//     //explicit anilist(QObject *parent = nullptr);
-    Anilist();
+    explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
 
 signals:
@@ -30,5 +28,8 @@ signals:
 
 public slots:
     void searchAnime();
-    void getViewerId();
+    QJsonObject getViewerId();
+    void getViewerList(); //should not be void eventually
+private:
+    void initializeAccountInfo();
 };

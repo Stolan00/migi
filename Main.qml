@@ -62,8 +62,8 @@ Window {
             anchors.topMargin: 5
             onClicked:
             {
-                anilist.searchAnime()
-                //anilist.getViewerId()
+                //anilist.searchAnime()
+                anilist.getViewerId()
             }
         }
     }

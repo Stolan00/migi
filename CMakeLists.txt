@@ -27,6 +27,8 @@ qt_add_qml_module(appanilist_project
         src/filewriter.cpp
         src/settings.cpp
         src/appsettingskey.cpp
+        src/appresourcekey.cpp
+        src/resources.cpp
 
         assets/networkmanager.h
         assets/anilist.h
@@ -34,6 +36,8 @@ qt_add_qml_module(appanilist_project
         assets/filewriter.h
         assets/settings.h
         assets/appsettingskey.h
+        assets/appresourcekey.h
+        assets/resources.h
 
     RESOURCES
         assets/gql.qrc
