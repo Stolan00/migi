@@ -29,7 +29,9 @@ signals:
 public slots:
     void searchAnime();
     QJsonObject getViewerId();
-    void getViewerList(); //should not be void eventually
+    //void getViewerList(); //should not be void eventually
+    void getViewerLists();
+    void getViewerName();
 private:
     void initializeAccountInfo();
 };

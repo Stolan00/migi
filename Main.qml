@@ -63,7 +63,7 @@ Window {
             onClicked:
             {
                 //anilist.searchAnime()
-                anilist.getViewerId()
+                anilist.getViewerLists()
             }
         }
     }

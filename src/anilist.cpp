@@ -42,20 +42,17 @@ void Anilist::searchAnime() {
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::configureOAuth2() {
     QString clientID  = "18259",
-            authUrl   = "https://anilist.co/api/v2/oauth/authorize?client_id=18259&response_type=token",
-            accessUrl = "https://anilist.co/api/v2/oauth/pin";
+        authUrl   = "https://anilist.co/api/v2/oauth/authorize?client_id=18259&response_type=token",
+        accessUrl = "https://anilist.co/api/v2/oauth/pin";
 
     m_netRequest.configureOAuth2(clientID, authUrl, accessUrl);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QJsonObject Anilist::getViewerId() {
-    connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
-
     QJsonObject query;
 
     Resources resources;
     QString queryText = resources.readResource(AppResourceKey::ALQueryViewerId).toString();
-    //qDebug() << resources.readResource(AppResourceKey::ALQueryViewerId);
 
     query["query"] = queryText;
 
@@ -65,45 +62,190 @@ QJsonObject Anilist::getViewerId() {
     QJsonObject headers {
         { "Content-Type", "application/json" },
         { "Accept", "application/json" },
-        { "Authorization", m_settings.value(AppSettingsKey::AccountAnilistToken).toString() }
+        { "Authorization", QString("Bearer %1").arg(m_settings.value(AppSettingsKey::AccountAnilistToken).toString()) }
     };
 
-    QNetworkReply* reply = m_netRequest.postRequest( postData, m_anilistUrl, headers);
+    QNetworkReply* reply = m_netRequest.postRequest(postData, m_anilistUrl, headers);
 
-    //qDebug() << reply->readAll();
-    qDebug() << "POST DATA:" << postData;
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
-    return m_netRequest.replyToJson( reply );
+        if (statusCode.isValid()) {
+            int statusCodeInt = statusCode.toInt();
+            qDebug() << "HTTP status code:" << statusCodeInt;
+        } else {
+            qDebug() << "Failed to get HTTP status code.";
+        }
+
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error:" << reply->errorString();
+        } else {
+            QByteArray responseData = reply->readAll();
+            qDebug() << "Response:" << responseData;
+
+            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObject = responseDoc.object();
+            qDebug() << responseObject;
+
+            QJsonObject data = responseObject["data"].toObject();
+            qDebug() << "DATA: " << data;
+            QJsonObject viewer = data["Viewer"].toObject();
+            qDebug() << "Viewer: " << viewer;
+            int viewerId = viewer["id"].toInt();
+
+            qDebug() << "VIEWER ID: " << viewerId;
+
+            m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
+
+            if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
+                qDebug() << "Id Written";
+
+            else qDebug() << "Failed to write token";
+            // Process the JSON response as needed
+        }
+
+        reply->deleteLater();
+    });
+
+    // You cannot return the JSON object directly here as the request is asynchronous
+    // Instead, handle the processing inside the lambda connected to the finished signal
+
+    return QJsonObject(); // Return an empty JSON object or handle it as needed
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::getViewerList() {
-    connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
-
-    QJsonObject variables;
-    variables["id"] = "486"; //TODO: May want to add a constructSearch function later or something that returns json qbytearray
-
+void Anilist::getViewerLists() {
+    QJsonObject query;
     Resources resources;
 
-    QString queryText   = resources.readResource( AppResourceKey::ALQueryMedia ).toString();
+    QString viewerName = m_settings.value(AppSettingsKey::AccountAnilistViewerName).toString();
+
+    QString queryText = resources.readResource(AppResourceKey::ALQueryMLCollection).toString();
+
     QString mediaFields = resources.readResource( AppResourceKey::ALQueryMediaFields ).toString();
-
+    QString mediaListFields = resources.readResource( AppResourceKey::ALQueryMLFields ).toString();
     queryText.replace("{mediaFields}", mediaFields);
+    queryText.replace("{mediaListFields}", mediaListFields);
 
-    QJsonObject query;
     query["query"] = queryText;
+
+    QJsonObject variables {
+        {"userName", viewerName}
+    };
 
     query["variables"] = variables;
 
     QJsonDocument document(query);
-    QByteArray postData = document.toJson();
+    QByteArray postData = document.toJson(QJsonDocument::Compact);
+
+    qDebug() << postData;
 
     QJsonObject headers {
-        {"Content-Type", "application/json"},
-        {"Accept", "application/json"},
-        {"Authorization", m_settings.value( AppSettingsKey::AccountAnilistToken ).toJsonValue() }
+        { "Content-Type", "application/json" },
+        { "Accept", "application/json" },
+        { "Authorization", QString("Bearer %1").arg(m_settings.value(AppSettingsKey::AccountAnilistToken).toString()) }
     };
 
-    m_netRequest.postRequest(postData, m_anilistUrl, headers);
+    QNetworkReply* reply = m_netRequest.postRequest(postData, m_anilistUrl, headers);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+        if (statusCode.isValid()) {
+            int statusCodeInt = statusCode.toInt();
+            qDebug() << "HTTP status code:" << statusCodeInt;
+        } else {
+            qDebug() << "Failed to get HTTP status code.";
+        }
+
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error:" << reply->errorString();
+        } else {
+            QByteArray responseData = reply->readAll();
+            qDebug() << "Response:" << responseData;
+
+            // QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            // QJsonObject responseObject = responseDoc.object();
+            // qDebug() << responseObject;
+
+            // QJsonObject data = responseObject["data"].toObject();
+            // qDebug() << "DATA: " << data;
+            // QJsonObject viewer = data["Viewer"].toObject();
+            // qDebug() << "Viewer: " << viewer;
+            // int viewerId = viewer["id"].toInt();
+
+            // qDebug() << "VIEWER ID: " << viewerId;
+
+            //m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
+
+            //if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
+                //qDebug() << "Id Written";
+
+            //else qDebug() << "Failed to write token";
+            // Process the JSON response as needed
+        }
+
+        reply->deleteLater();
+    });
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::getViewerName() {
+    QJsonObject query;
+
+    Resources resources;
+    QString queryText = resources.readResource(AppResourceKey::ALQueryViewerName).toString();
+
+    query["query"] = queryText;
+
+    QJsonDocument document(query);
+    QByteArray postData = document.toJson(QJsonDocument::Compact);
+
+    QJsonObject headers {
+        { "Content-Type", "application/json" },
+        { "Accept", "application/json" },
+        { "Authorization", QString("Bearer %1").arg(m_settings.value(AppSettingsKey::AccountAnilistToken).toString()) }
+    };
+
+    QNetworkReply* reply = m_netRequest.postRequest(postData, m_anilistUrl, headers);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+        if (statusCode.isValid()) {
+            int statusCodeInt = statusCode.toInt();
+            qDebug() << "HTTP status code:" << statusCodeInt;
+        } else {
+            qDebug() << "Failed to get HTTP status code.";
+        }
+
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error:" << reply->errorString();
+        } else {
+            QByteArray responseData = reply->readAll();
+            qDebug() << "Response:" << responseData;
+
+            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObject = responseDoc.object();
+            qDebug() << responseObject;
+
+            QJsonObject data = responseObject["data"].toObject();
+            qDebug() << "DATA: " << data;
+            QJsonObject viewer = data["Viewer"].toObject();
+            qDebug() << "Viewer: " << viewer;
+            QString viewerName = viewer["name"].toString();
+
+            qDebug() << "VIEWER ID: " << viewerName;
+
+            m_settings.setValue(AppSettingsKey::AccountAnilistViewerName, viewerName);
+
+            if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerName ).isNull() )
+                qDebug() << "Id Written";
+
+            else qDebug() << "Failed to write token";
+            // Process the JSON response as needed
+        }
+
+        reply->deleteLater();
+    });
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {

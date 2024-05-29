@@ -31,8 +31,6 @@ QVariant Resources::readResourceFile(const QString &resourcePath) { //TODO: need
     content.replace('\n', ' ').replace("\r", "");
     content = content.simplified();
 
-    qDebug() << "RESOURCES CONTENT: " << content;
-
     return content;
 }
 // --------------------------------------------------------------------------------------------------------------------------

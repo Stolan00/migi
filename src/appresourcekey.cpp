@@ -8,7 +8,8 @@ QString toString(AppResourceKey key) {
         { AppResourceKey::ALQueryMediaFields,  ":/assets/gql/MediaFields.gql"         },
         { AppResourceKey::ALQueryMLCollection, ":/assets/gql/MediaListCollection.gql" },
         { AppResourceKey::ALQueryMLFields,     ":/assets/gql/MediaListFields.gql"     },
-        { AppResourceKey::ALQueryViewerId,     ":/assets/gql/ViewerId.gql"            }
+        { AppResourceKey::ALQueryViewerId,     ":/assets/gql/ViewerId.gql"            },
+        { AppResourceKey::ALQueryViewerName,   ":/assets/gql/ViewerName.gql"          }
 
     };
 

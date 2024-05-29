@@ -37,6 +37,8 @@ QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUr
 
     QNetworkReply* reply = manager.post(request, postData);
 
+    QByteArray data = reply->readAll();
+
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         if (reply->error() != QNetworkReply::NoError) {
             qDebug() << "Network request error:" << reply->errorString();

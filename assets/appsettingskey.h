@@ -7,6 +7,7 @@ enum class AppSettingsKey {
     // Account settings
     AccountAnilistToken,
     AccountAnilistViewerId,
+    AccountAnilistViewerName,
 
     // Display settings
     DisplayTheme,

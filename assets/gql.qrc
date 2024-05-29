@@ -5,5 +5,6 @@
         <file alias="MediaFields.gql">gql/MediaFields.gql</file>
         <file alias="ViewerId.gql">gql/ViewerId.gql</file>
         <file alias="MediaListFields.gql">gql/MediaListFields.gql</file>
+        <file alias="ViewerName.gql">gql/ViewerName.gql</file>
     </qresource>
 </RCC>

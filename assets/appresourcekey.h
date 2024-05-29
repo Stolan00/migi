@@ -9,7 +9,8 @@ enum class AppResourceKey {
     ALQueryMediaFields,
     ALQueryMLCollection,
     ALQueryMLFields,
-    ALQueryViewerId
+    ALQueryViewerId,
+    ALQueryViewerName
 };
 
 // Function to convert AppSettingKey to QString
