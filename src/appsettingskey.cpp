@@ -1,7 +1,7 @@
 #include "assets/appsettingskey.h"
 #include "qdebug.h"
 // --------------------------------------------------------------------------------------------------------------------------
-QString settingsToString(AppSettingsKey key) {
+QString toString(AppSettingsKey key) {
     static const QMap<AppSettingsKey, QString> keyToString {
 
         // Acount

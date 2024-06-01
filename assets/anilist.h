@@ -4,6 +4,10 @@
 #include "networkmanager.h"
 #include <QObject>
 #include "settings.h"
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+#include <QJsonArray>
+
 
 //TODO: make "service"/"website" ABC?
 class Anilist : public QObject
@@ -22,9 +26,10 @@ class Anilist : public QObject
 public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
+    void writeToDatabase(QJsonArray& lists); //probably shouldnt be a slot so i can pass by ref
 
 signals:
-    void responseReceived(const QJsonObject &response);
+    void responseReceived(const QJsonObject& response);
 
 public slots:
     void searchAnime();
@@ -32,6 +37,7 @@ public slots:
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
+
 private:
     void initializeAccountInfo();
 };

@@ -20,20 +20,20 @@ bool Settings::setValue(const AppSettingsKey key, const QVariant& value) {
 
     QSettings settings;
 
-    settings.setValue( settingsToString( key ), value );
+    settings.setValue( toString( key ), value );
 
     settings.sync();
 
     qDebug() << "QSettings file path:" << settings.fileName();
 
-    return settings.contains( settingsToString( key ) );
+    return settings.contains( toString( key ) );
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QVariant Settings::value(const AppSettingsKey key) {
 
     QSettings settings;
 
-    QAnyStringView path = settingsToString(key);
+    QAnyStringView path = toString(key);
 
     QVariant result = settings.value( path );
 

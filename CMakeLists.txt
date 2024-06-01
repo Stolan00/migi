@@ -41,6 +41,7 @@ qt_add_qml_module(appanilist_project
 
     RESOURCES
         assets/gql.qrc
+        SOURCES databasemanager.h databasemanager.cpp
 )
 
 # Add the assets directory to the include directories

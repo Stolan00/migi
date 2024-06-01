@@ -7,6 +7,8 @@
 // --------------------------------------------------------------------------------------------------------------------------
 Anilist::Anilist(QObject *parent) : QObject(parent){
     initializeAccountInfo();
+    qRegisterMetaType<QJsonArray>();
+
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -161,15 +163,23 @@ void Anilist::getViewerLists() {
             qDebug() << "Error:" << reply->errorString();
         } else {
             QByteArray responseData = reply->readAll();
-            qDebug() << "Response:" << responseData;
+            //qDebug() << "Response:" << responseData;
 
-            // QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
-            // QJsonObject responseObject = responseDoc.object();
-            // qDebug() << responseObject;
+            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObject = responseDoc.object();
+            //qDebug() << responseObject;
 
-            // QJsonObject data = responseObject["data"].toObject();
-            // qDebug() << "DATA: " << data;
-            // QJsonObject viewer = data["Viewer"].toObject();
+            QJsonObject data    = responseObject["data"].toObject();
+            QJsonObject mlc     = data["MediaListCollection"].toObject();
+            QJsonArray lists   = mlc["lists"].toArray();
+            //qDebug() << lists;
+
+            writeToDatabase(lists);
+
+            //QJsonObject entries = lists["entries"].toObject();
+
+            //qDebug() << entries;
+
             // qDebug() << "Viewer: " << viewer;
             // int viewerId = viewer["id"].toInt();
 
@@ -246,6 +256,70 @@ void Anilist::getViewerName() {
 
         reply->deleteLater();
     });
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::writeToDatabase(QJsonArray& lists) {
+    QFile file("anime.xml");
+
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning("Cannot open file for writing: %s", qPrintable(file.errorString()));
+        return;
+    }
+
+    QXmlStreamWriter stream(&file);
+    stream.setAutoFormatting(true);
+    stream.writeStartDocument();
+
+    stream.writeStartElement("database");
+
+    for (const QJsonValue &listValue : lists) {
+        QJsonObject listObject = listValue.toObject();
+        QJsonArray entries = listObject["entries"].toArray();
+
+        // Process each entry in the entries array
+        for (const QJsonValue &entryValue : entries) {
+            QJsonObject entryObject = entryValue.toObject();
+
+            // Extract fields from entryObject as needed
+            int id = entryObject["id"].toInt();
+            QString status = entryObject["status"].toString();
+
+            QJsonObject media = entryObject["media"].toObject();
+            QString titleRomaji = media["title"].toObject()["romaji"].toString();
+            QString titleEnglish = media["title"].toObject()["english"].toString();
+            QString titleNative = media["title"].toObject()["native"].toString();
+
+
+            // Start Anime write
+            stream.writeStartElement("anime");
+                // Start ID write
+                stream.writeStartElement("id");
+                    stream.writeAttribute("name", "anilist");
+                    stream.writeCharacters(QString::number(id));
+                stream.writeEndElement(); // id
+
+                // Start Title Write
+                stream.writeStartElement("title");
+                    stream.writeStartElement("romaji");
+                    stream.writeCDATA(titleRomaji);
+                    stream.writeEndElement();
+
+                    stream.writeStartElement("english");
+                    stream.writeCDATA(titleEnglish);
+                    stream.writeEndElement();
+
+                    stream.writeStartElement("native");
+                    stream.writeCDATA(titleNative);
+                    stream.writeEndElement();
+                stream.writeEndElement(); //title
+
+            stream.writeEndElement(); // anime
+        }
+    }
+
+    stream.writeEndElement(); //database
+
+    stream.writeEndDocument();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {
