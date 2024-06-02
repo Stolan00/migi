@@ -8,7 +8,7 @@ class Resources : public QObject
     Q_OBJECT
 public:
     explicit Resources(QObject *parent = nullptr);
-    static QString value(const AppResourceKey key);
+    static QString value(const AppResourceKey key); //should probably make private
 
 
     QVariant readResource(const AppResourceKey& key);

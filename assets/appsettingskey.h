@@ -16,6 +16,9 @@ enum class AppSettingsKey {
     // Network settings
     NetworkAutoSync,
 
+    // Database settings
+    DatabasePath
+
 };
 
 // Function to convert AppSettingKey to QString

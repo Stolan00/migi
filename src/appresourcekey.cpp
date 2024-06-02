@@ -9,8 +9,10 @@ QString toString(AppResourceKey key) {
         { AppResourceKey::ALQueryMLCollection, ":/assets/gql/MediaListCollection.gql" },
         { AppResourceKey::ALQueryMLFields,     ":/assets/gql/MediaListFields.gql"     },
         { AppResourceKey::ALQueryViewerId,     ":/assets/gql/ViewerId.gql"            },
-        { AppResourceKey::ALQueryViewerName,   ":/assets/gql/ViewerName.gql"          }
+        { AppResourceKey::ALQueryViewerName,   ":/assets/gql/ViewerName.gql"          },
 
+        // SQL Queries
+        { AppResourceKey::CreateAnimeTable, ":/assets/sql/CreateAnimeTable.sql" },
     };
 
     return keyToString.value(key, "");

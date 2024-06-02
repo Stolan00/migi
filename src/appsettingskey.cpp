@@ -14,7 +14,10 @@ QString toString(AppSettingsKey key) {
         { AppSettingsKey::DisplayLanguage, "display/language" },
 
         // Networking
-        { AppSettingsKey::NetworkAutoSync, "network/autoSync" }
+        { AppSettingsKey::NetworkAutoSync, "network/autoSync" },
+
+        // Database
+        { AppSettingsKey::DatabasePath, "database/name" }
 
     };
 

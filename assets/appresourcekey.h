@@ -10,7 +10,10 @@ enum class AppResourceKey {
     ALQueryMLCollection,
     ALQueryMLFields,
     ALQueryViewerId,
-    ALQueryViewerName
+    ALQueryViewerName,
+
+    // SQL files
+    CreateAnimeTable
 };
 
 // Function to convert AppSettingKey to QString

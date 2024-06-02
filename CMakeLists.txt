@@ -5,16 +5,18 @@ project(anilist_project VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick)
-find_package(Qt6 REQUIRED COMPONENTS NetworkAuth)
+# Find the required Qt modules
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick NetworkAuth Sql)
 
 qt_standard_project_setup()
 
+# Add the executable
 qt_add_executable(appanilist_project
     main.cpp
     assets/gql.qrc
 )
 
+# Add the QML module
 qt_add_qml_module(appanilist_project
     URI anilist_project
     VERSION 1.0
@@ -29,6 +31,7 @@ qt_add_qml_module(appanilist_project
         src/appsettingskey.cpp
         src/appresourcekey.cpp
         src/resources.cpp
+        src/databasemanager.cpp
 
         assets/networkmanager.h
         assets/anilist.h
@@ -38,32 +41,34 @@ qt_add_qml_module(appanilist_project
         assets/appsettingskey.h
         assets/appresourcekey.h
         assets/resources.h
+        assets/databasemanager.h
 
     RESOURCES
         assets/gql.qrc
-        SOURCES databasemanager.h databasemanager.cpp
 )
 
-# Add the assets directory to the include directories
+# Add the assets and src directories to the include directories
 target_include_directories(appanilist_project
     PRIVATE assets
+    PRIVATE src
 )
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
+
+# Set target properties
 set_target_properties(appanilist_project PROPERTIES
-#    MACOSX_BUNDLE_GUI_IDENTIFIER com.example.appanilist_project
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
 
+# Link the required Qt libraries
 target_link_libraries(appanilist_project
     PRIVATE Qt6::Quick
     PRIVATE Qt6::NetworkAuth
+    PRIVATE Qt6::Sql
 )
 
+# Installation setup
 include(GNUInstallDirs)
 install(TARGETS appanilist_project
     BUNDLE DESTINATION .

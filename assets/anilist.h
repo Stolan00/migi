@@ -3,6 +3,7 @@
 #include "qqmlintegration.h"
 #include "networkmanager.h"
 #include <QObject>
+#include "resources.h"
 #include "settings.h"
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
@@ -22,11 +23,13 @@ class Anilist : public QObject
     QUrl m_aniListAuthUrl = QUrl("https://anilist.co/api/v2/oauth/authorize");
 
     Settings& m_settings = Settings::instance();
+    Resources m_resources;
 
 public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
-    void writeToDatabase(QJsonArray& lists); //probably shouldnt be a slot so i can pass by ref
+    void writeToDatabase(QJsonArray& entries);
+    void createDBTables();
 
 signals:
     void responseReceived(const QJsonObject& response);
@@ -37,6 +40,7 @@ public slots:
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
+    //bool insertAnime();
 
 private:
     void initializeAccountInfo();

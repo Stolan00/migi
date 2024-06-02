@@ -1,6 +1,5 @@
 #include "assets/anilist.h"
-#include "assets/filewriter.h"
-#include "assets/resources.h"
+#include "databasemanager.h"
 #include <QResource>
 
 #include <QDebug>
@@ -169,14 +168,32 @@ void Anilist::getViewerLists() {
             QJsonObject responseObject = responseDoc.object();
             //qDebug() << responseObject;
 
+            QJsonArray allEntriesArray;
+
             QJsonObject data    = responseObject["data"].toObject();
             QJsonObject mlc     = data["MediaListCollection"].toObject();
-            QJsonArray lists   = mlc["lists"].toArray();
-            //qDebug() << lists;
+            QJsonArray lists    = mlc["lists"].toArray();
+            qDebug() << lists;
 
-            writeToDatabase(lists);
+            for (const QJsonValue &listValue : lists) {
+                // Ensure the listValue is an object
+                if (listValue.isObject()) {
+                    QJsonObject listObject = listValue.toObject();
 
-            //QJsonObject entries = lists["entries"].toObject();
+                    // Check if the object contains an "entries" array
+                    if (listObject.contains("entries") && listObject["entries"].isArray()) {
+                        QJsonArray entries = listObject["entries"].toArray();
+
+                        // Append each entry from the nested entries array to allEntriesArray
+                        for (const QJsonValue &entryValue : entries) {
+                            allEntriesArray.append(entryValue);
+                        }
+                    }
+                }
+            }
+
+
+            writeToDatabase(allEntriesArray);
 
             //qDebug() << entries;
 
@@ -258,69 +275,21 @@ void Anilist::getViewerName() {
     });
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::writeToDatabase(QJsonArray& lists) {
-    QFile file("anime.xml");
-
-    if (!file.open(QIODevice::WriteOnly)) {
-        qWarning("Cannot open file for writing: %s", qPrintable(file.errorString()));
-        return;
-    }
-
-    QXmlStreamWriter stream(&file);
-    stream.setAutoFormatting(true);
-    stream.writeStartDocument();
-
-    stream.writeStartElement("database");
-
-    for (const QJsonValue &listValue : lists) {
-        QJsonObject listObject = listValue.toObject();
-        QJsonArray entries = listObject["entries"].toArray();
-
-        // Process each entry in the entries array
-        for (const QJsonValue &entryValue : entries) {
-            QJsonObject entryObject = entryValue.toObject();
-
-            // Extract fields from entryObject as needed
-            int id = entryObject["id"].toInt();
-            QString status = entryObject["status"].toString();
-
-            QJsonObject media = entryObject["media"].toObject();
-            QString titleRomaji = media["title"].toObject()["romaji"].toString();
-            QString titleEnglish = media["title"].toObject()["english"].toString();
-            QString titleNative = media["title"].toObject()["native"].toString();
-
-
-            // Start Anime write
-            stream.writeStartElement("anime");
-                // Start ID write
-                stream.writeStartElement("id");
-                    stream.writeAttribute("name", "anilist");
-                    stream.writeCharacters(QString::number(id));
-                stream.writeEndElement(); // id
-
-                // Start Title Write
-                stream.writeStartElement("title");
-                    stream.writeStartElement("romaji");
-                    stream.writeCDATA(titleRomaji);
-                    stream.writeEndElement();
-
-                    stream.writeStartElement("english");
-                    stream.writeCDATA(titleEnglish);
-                    stream.writeEndElement();
-
-                    stream.writeStartElement("native");
-                    stream.writeCDATA(titleNative);
-                    stream.writeEndElement();
-                stream.writeEndElement(); //title
-
-            stream.writeEndElement(); // anime
-        }
-    }
-
-    stream.writeEndElement(); //database
-
-    stream.writeEndDocument();
+void Anilist::writeToDatabase(QJsonArray& entries) {
+    createDBTables();
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db( dbPath );
 }
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::createDBTables() {
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db( dbPath );
+
+    QString animeTableQuery = m_resources.readResource(AppResourceKey::CreateAnimeTable).toString();
+
+    db.createTable(animeTableQuery);
+}
+
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {
     if (m_settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
@@ -353,3 +322,4 @@ void Anilist::initializeAccountInfo() {
 
     } else qDebug() << "Id already exists";
 }
+// --------------------------------------------------------------------------------------------------------------------------
