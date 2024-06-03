@@ -15,6 +15,11 @@
 class NetworkManager : public QObject {
     Q_OBJECT
 public:
+    struct PostRequest {
+        QJsonObject postData;
+        QNetworkRequest request;
+    };
+
     static NetworkManager& instance();
     NetworkManager(const NetworkManager&) = delete;
     NetworkManager& operator=(const NetworkManager&) = delete;
@@ -25,12 +30,14 @@ public:
     static QObject* create(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 
+
+
 signals:
     void responseReceived(const QJsonObject&response);
 
 public slots:
     QNetworkRequest createRequest(const QUrl &url , const QJsonObject &headers);
-    QNetworkReply*  postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers);
+    QNetworkReply*  sendPostRequest(PostRequest);
     QJsonObject     replyToJson(QNetworkReply* reply);
 
 private:

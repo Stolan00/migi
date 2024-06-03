@@ -44,4 +44,5 @@ public slots:
 
 private:
     void initializeAccountInfo();
+    NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
 };

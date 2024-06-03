@@ -30,12 +30,12 @@ void NetworkManager::configureOAuth2(const QString& clientId, const QUrl& authUr
     oauth2.grant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
-QNetworkReply* NetworkManager::postRequest(const QByteArray& postData, const QUrl& url, const QJsonObject& headers) {
-    Settings& settings = Settings::instance();
+QNetworkReply* NetworkManager::sendPostRequest(PostRequest postRequest) {
 
-    QNetworkRequest request = createRequest(url, headers);
+    QJsonDocument document(postRequest.postData);
+    QByteArray postData = document.toJson(QJsonDocument::Compact);
 
-    QNetworkReply* reply = manager.post(request, postData);
+    QNetworkReply* reply = manager.post(postRequest.request, postData);
 
     QByteArray data = reply->readAll();
 
