@@ -17,6 +17,10 @@ public:
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);
+    QStringList getAllTables();
+    QStringList getTableSchema(const QString& tableName);
+
+    bool deleteAllTables(); // TODO: probably shouldnt be public, leaving for development
     ~DatabaseManager();
 
 signals:

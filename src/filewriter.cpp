@@ -1,4 +1,4 @@
-#include "assets/filewriter.h"
+#include "filewriter.h"
 // --------------------------------------------------------------------------------------------------------------------------
 FileWriter::FileWriter(QObject *parent)
     : QObject{parent}
@@ -37,3 +37,33 @@ QString FileWriter::readFile(const QString& path) {
     return contents;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+QStringList FileWriter::readFilesFromDirectory(const QString& directoryPath, const QStringList& fileExtensions) {
+    QDir dir(directoryPath);
+    QStringList filter;
+
+    for (const QString &extension : fileExtensions) {
+        filter << QString("*.%1").arg(extension);
+    }
+
+    QStringList files = dir.entryList(filter, QDir::Files);
+    QStringList fileContents;
+
+    for (const QString &file : files) {
+        QFile fileHandle(dir.absoluteFilePath(file));
+        if (fileHandle.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&fileHandle);
+            fileContents.append(in.readAll());
+            fileHandle.close();
+        } else {
+            qWarning() << "Failed to open file:" << fileHandle.fileName();
+        }
+    }
+
+    return fileContents;
+}
+
+// --------------------------------------------------------------------------------------------------------------------------
+// Helper function for passing in a single extension
+QStringList FileWriter::readFilesFromDirectory(const QString& directoryPath, const QString& fileExtension) {
+    return readFilesFromDirectory(directoryPath, QStringList() << fileExtension);
+}

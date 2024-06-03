@@ -28,6 +28,8 @@ QVariant Resources::readResourceFile(const QString &resourcePath) { //TODO: need
 
     QTextStream in(&file);
     QString content = in.readAll();
+
+    // should probably go somewhere else
     content.replace('\n', ' ').replace("\r", "");
     content = content.simplified();
 

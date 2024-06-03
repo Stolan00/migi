@@ -56,3 +56,59 @@ bool DatabaseManager::insertIntoTable(const QString& tableName, const QVariantMa
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+QStringList DatabaseManager::getAllTables() {
+    QStringList tables;
+
+    if (m_database.isOpen()) {
+        QSqlQuery query("SELECT name FROM sqlite_master WHERE type='table';", m_database);
+        while (query.next()) {
+            tables << query.value(0).toString();
+        }
+    } else {
+        qWarning() << "Database is not open!";
+    }
+
+    return tables;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QStringList DatabaseManager::getTableSchema(const QString& tableName) {
+    QStringList schema;
+
+    if (m_database.isOpen()) {
+        QSqlQuery query(m_database);
+        query.prepare(QString("PRAGMA table_info(%1);").arg(tableName));
+        if (query.exec()) {
+            while (query.next()) {
+                QString columnName = query.value("name").toString();
+                QString columnType = query.value("type").toString();
+                schema << QString("%1 %2").arg(columnName, columnType);
+            }
+        } else {
+            qWarning() << "Failed to execute PRAGMA table_info:" << query.lastError();
+        }
+    } else {
+        qWarning() << "Database is not open!";
+    }
+
+    return schema;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+bool DatabaseManager::deleteAllTables() {
+    QStringList tables = getAllTables();
+
+    foreach (const QString& table, tables) {
+        QSqlQuery dropQuery(m_database);
+
+        QString dropStatement = QString("DROP TABLE IF EXISTS %1;").arg(table);
+
+        if (!dropQuery.exec(dropStatement)) {
+            qDebug() << "Failed to drop table" << table << ":" << dropQuery.lastError();
+            return false;
+        } else {
+            qDebug() << "Dropped table:" << table;
+        }
+    }
+
+    qDebug() << "ALL TABLES DELETED";
+    return true;
+}

@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS anime (
+CREATE TABLE IF NOT EXISTS Anime (
     id INTEGER PRIMARY KEY, 
     titleRomaji TEXT, 
     titleEnglish TEXT, 

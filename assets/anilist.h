@@ -29,7 +29,7 @@ public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
     void writeToDatabase(QJsonArray& entries);
-    void createDBTables();
+    QStringList createDBTables();
 
 signals:
     void responseReceived(const QJsonObject& response);

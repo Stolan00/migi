@@ -2,7 +2,6 @@
 // --------------------------------------------------------------------------------------------------------------------------
 QString toString(AppResourceKey key) {
     static const QMap<AppResourceKey, QString> keyToString {
-
        // GraphQL Queries
        { AppResourceKey::ALQueryMedia,        ":/assets/gql/Media.gql"               },
        { AppResourceKey::ALQueryMediaFields,  ":/assets/gql/MediaFields.gql"         },
@@ -22,9 +21,8 @@ QString toString(AppResourceKey key) {
        { AppResourceKey::CreateGenreTable,        ":/assets/sql/CreateGenreTable.sql"        },
        { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/CreateModifiedTrigger.sql"   },
        { AppResourceKey::CreateStatusTable,       ":/assets/sql/CreateStatusTable.sql"       },
-       };
+    };
 
     return keyToString.value(key, "");
-
 }
 // --------------------------------------------------------------------------------------------------------------------------

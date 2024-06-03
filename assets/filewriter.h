@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug> //temp
+#include <QDir>
 
 class FileWriter : public QObject
 {
@@ -15,6 +16,8 @@ class FileWriter : public QObject
 public:
     explicit FileWriter(QObject *parent = nullptr);
     QString readFile(const QString& path);
+    QStringList readFilesFromDirectory(const QString& directoryPath, const QStringList& fileExtensions);
+    QStringList readFilesFromDirectory(const QString& directoryPath, const QString& fileExtension);
 
 signals:
 

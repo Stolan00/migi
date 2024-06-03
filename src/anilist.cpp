@@ -1,13 +1,13 @@
 #include "assets/anilist.h"
 #include "databasemanager.h"
+#include "filewriter.h"
 #include <QResource>
 
 #include <QDebug>
 // --------------------------------------------------------------------------------------------------------------------------
 Anilist::Anilist(QObject *parent) : QObject(parent){
     initializeAccountInfo();
-    qRegisterMetaType<QJsonArray>();
-
+    m_settings.setValue(AppSettingsKey::DatabasePath, "database");
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -38,7 +38,7 @@ void Anilist::searchAnime() {
     };
 
     QNetworkReply* reply = m_netRequest.postRequest(postData, m_anilistUrl, headers);
-    //qDebug() << reply->readAll();
+    qDebug() << reply->readAll();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::configureOAuth2() {
@@ -276,32 +276,30 @@ void Anilist::getViewerName() {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeToDatabase(QJsonArray& entries) {
-    createDBTables();
+    QStringList tables = createDBTables();
+
+    qDebug() << tables;
+
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db( dbPath );
-
-
+    qDebug() << dbPath;
+    DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::createDBTables() {
+QStringList Anilist::createDBTables() {
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     DatabaseManager db( dbPath );
 
-    QString animeTableQuery = m_resources.readResource(AppResourceKey::CreateAnimeTable).toString();
+    db.deleteAllTables();
+    FileWriter files;
+    QStringList tables = files.readFilesFromDirectory(":/assets/sql", "sql");
 
-    qDebug() << animeTableQuery;
-
-    if (db.createTable(animeTableQuery)) {
-        qDebug() << "TABLE CREATED";
+    for (auto& table : tables) {
+        if(db.createTable(table))
+            qDebug() << "TABLE CREATED";
     }
 
-    QString entryTableQuery = m_resources.readResource(AppResourceKey::CreateEntryTable).toString();
-
-    if (db.createTable(entryTableQuery)) {
-        qDebug() << "TABLE CREATED";
-    }
+    return db.getAllTables();
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {
     if (m_settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
