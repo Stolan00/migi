@@ -4,7 +4,7 @@
 #include <QMap>
 
 enum class AppResourceKey {
-    // gql files
+    // GraphQL Queries
     ALQueryMedia,
     ALQueryMediaFields,
     ALQueryMLCollection,
@@ -12,9 +12,19 @@ enum class AppResourceKey {
     ALQueryViewerId,
     ALQueryViewerName,
 
-    // SQL files
-    CreateAnimeTable
+    // SQL Queries
+    CreateAnimeTable,
+    CreateAnimeGenreTable,
+    CreateAnimeStatusTable,
+    CreateAnimeSynonymTable,
+    CreateEntryStatusTable,
+    CreateEntryTable,
+    CreateFormatTable,
+    CreateGenreTable,
+    CreateModifiedTrigger,
+    CreateStatusTable
 };
+
 
 // Function to convert AppSettingKey to QString
 QString toString(AppResourceKey key);

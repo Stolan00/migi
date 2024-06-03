@@ -173,7 +173,7 @@ void Anilist::getViewerLists() {
             QJsonObject data    = responseObject["data"].toObject();
             QJsonObject mlc     = data["MediaListCollection"].toObject();
             QJsonArray lists    = mlc["lists"].toArray();
-            qDebug() << lists;
+            //qDebug() << lists;
 
             for (const QJsonValue &listValue : lists) {
                 // Ensure the listValue is an object
@@ -262,7 +262,7 @@ void Anilist::getViewerName() {
 
             qDebug() << "VIEWER ID: " << viewerName;
 
-            m_settings.setValue(AppSettingsKey::AccountAnilistViewerName, viewerName);
+            m_settings.setValue(AppSettingsKey::AccountAnilistViewerName, viewerName); //maybe this should return a call to value so I can re-use it (for example on the line below)
 
             if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerName ).isNull() )
                 qDebug() << "Id Written";
@@ -279,6 +279,8 @@ void Anilist::writeToDatabase(QJsonArray& entries) {
     createDBTables();
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     DatabaseManager db( dbPath );
+
+
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::createDBTables() {
@@ -287,7 +289,17 @@ void Anilist::createDBTables() {
 
     QString animeTableQuery = m_resources.readResource(AppResourceKey::CreateAnimeTable).toString();
 
-    db.createTable(animeTableQuery);
+    qDebug() << animeTableQuery;
+
+    if (db.createTable(animeTableQuery)) {
+        qDebug() << "TABLE CREATED";
+    }
+
+    QString entryTableQuery = m_resources.readResource(AppResourceKey::CreateEntryTable).toString();
+
+    if (db.createTable(entryTableQuery)) {
+        qDebug() << "TABLE CREATED";
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------------
