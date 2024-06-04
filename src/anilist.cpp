@@ -11,7 +11,7 @@ Anilist::Anilist(QObject *parent) : QObject(parent){
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
-    connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
+    //connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
 
     QJsonObject variables;
     variables["id"] = "486"; //TODO: May want to add a constructSearch function later or something that returns json qbytearray
@@ -126,75 +126,30 @@ void Anilist::getViewerLists() {
 
     bool isAuthRequest = true;
 
-    NetworkManager::PostRequest postRequest = constructSearch(queryText, isAuthRequest, variables);
+    // Define the callback function for processing the data
+    auto callback = [this](const QJsonObject& data) {
+        QJsonArray allEntriesArray;
 
-    QNetworkReply* reply = m_netRequest.sendPostRequest(postRequest);
+        QJsonObject mlc = data["MediaListCollection"].toObject();
+        QJsonArray lists = mlc["lists"].toArray();
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() { //TOOD: should not be a lambda
-        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+        for (const QJsonValue& listValue : lists) {
+            if (!listValue.isObject()) continue;
 
-        if (statusCode.isValid()) {
-            int statusCodeInt = statusCode.toInt();
-            qDebug() << "HTTP status code:" << statusCodeInt;
-        } else {
-            qDebug() << "Failed to get HTTP status code.";
-        }
+            QJsonObject listObject = listValue.toObject();
+            if (!listObject.contains("entries") || !listObject["entries"].isArray()) continue;
 
-        if (reply->error() != QNetworkReply::NoError) {
-            qDebug() << "Error:" << reply->errorString();
-        } else {
-            QByteArray responseData = reply->readAll();
-            qDebug() << "Response:" << responseData;
-
-            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
-            QJsonObject responseObject = responseDoc.object();
-            //qDebug() << responseObject;
-
-            QJsonArray allEntriesArray;
-
-            QJsonObject data    = responseObject["data"].toObject();
-            QJsonObject mlc     = data["MediaListCollection"].toObject();
-            QJsonArray lists    = mlc["lists"].toArray();
-            //qDebug() << lists;
-
-            for (const QJsonValue &listValue : lists) {
-                // Ensure the listValue is an object
-                if (listValue.isObject()) {
-                    QJsonObject listObject = listValue.toObject();
-
-                    // Check if the object contains an "entries" array
-                    if (listObject.contains("entries") && listObject["entries"].isArray()) {
-                        QJsonArray entries = listObject["entries"].toArray();
-
-                        // Append each entry from the nested entries array to allEntriesArray
-                        for (const QJsonValue &entryValue : entries) {
-                            allEntriesArray.append(entryValue);
-                        }
-                    }
-                }
+            QJsonArray entries = listObject["entries"].toArray();
+            for (const QJsonValue& entryValue : entries) {
+                allEntriesArray.append(entryValue);
             }
-
-
-            writeToDatabase(allEntriesArray);
-
-            //qDebug() << entries;
-
-            // qDebug() << "Viewer: " << viewer;
-            // int viewerId = viewer["id"].toInt();
-
-            // qDebug() << "VIEWER ID: " << viewerId;
-
-            //m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
-
-            //if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
-                //qDebug() << "Id Written";
-
-            //else qDebug() << "Failed to write token";
-            // Process the JSON response as needed
         }
 
-        reply->deleteLater();
-    });
+        writeToDatabase(allEntriesArray);
+    };
+
+    // Call the function to send the request with the callback
+    sendAnilistRequest(queryText, isAuthRequest, variables, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerName() {
@@ -247,6 +202,37 @@ void Anilist::getViewerName() {
 
             else qDebug() << "Failed to write token";
             // Process the JSON response as needed
+        }
+
+        reply->deleteLater();
+    });
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables, std::function<void(const QJsonObject&)> callback) {
+    NetworkManager::PostRequest postRequest = constructSearch(queryText, isAuthRequest, variables);
+    QNetworkReply* reply = m_netRequest.sendPostRequest(postRequest);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, callback]() {
+        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+        if (statusCode.isValid()) {
+            int statusCodeInt = statusCode.toInt();
+            qDebug() << "HTTP status code:" << statusCodeInt;
+        } else {
+            qDebug() << "Failed to get HTTP status code.";
+        }
+
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error:" << reply->errorString();
+        } else {
+            QByteArray responseData = reply->readAll();
+            qDebug() << "Response:" << responseData;
+
+            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            QJsonObject responseObject = responseDoc.object();
+            QJsonObject data = responseObject["data"].toObject();
+
+            callback(data); // Call the callback function with the processed data
         }
 
         reply->deleteLater();

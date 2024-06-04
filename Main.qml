@@ -68,15 +68,15 @@ Window {
         }
     }
 
-    Connections
-    {
-        target: anilist
-        function onResponseReceived(response)
-        {
-            console.log(response.data.media)
-            responseArea.text = response.data.Media.description
-            //responseArea.text = response['data']['media']['description']
-            anime_pic.source = response.data.Media.coverImage.large
-        }
-    }
+    // Connections
+    // {
+    //     target: anilist
+    //     function onResponseReceived(response)
+    //     {
+    //         console.log(response.data.media)
+    //         responseArea.text = response.data.Media.description
+    //         //responseArea.text = response['data']['media']['description']
+    //         anime_pic.source = response.data.Media.coverImage.large
+    //     }
+    // }
 }

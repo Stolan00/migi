@@ -32,7 +32,8 @@ public:
     QStringList createDBTables();
 
 signals:
-    void responseReceived(const QJsonObject& response);
+    void requestFinished(const QJsonObject& data);
+    //void responseReceived(const QJsonObject& response);
 
 public slots:
     void searchAnime();
@@ -45,4 +46,7 @@ public slots:
 private:
     void initializeAccountInfo();
     NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
+
+    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables, std::function<void(const QJsonObject&)> callback);
+
 };
