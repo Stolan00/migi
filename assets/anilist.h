@@ -37,7 +37,7 @@ signals:
 
 public slots:
     void searchAnime();
-    QJsonObject getViewerId();
+    void getViewerId();
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
@@ -47,6 +47,8 @@ private:
     void initializeAccountInfo();
     NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
 
-    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables, std::function<void(const QJsonObject&)> callback);
+    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables = QJsonObject(), std::function<void(const QJsonObject&)> callback = [](const QJsonObject&){});
+    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
+    void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
 
 };

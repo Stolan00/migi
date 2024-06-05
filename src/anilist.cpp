@@ -48,70 +48,28 @@ void Anilist::configureOAuth2() {
     m_netRequest.configureOAuth2(clientID, authUrl, accessUrl);
 }
 // --------------------------------------------------------------------------------------------------------------------------
-QJsonObject Anilist::getViewerId() {
-    QJsonObject query;
-
+void Anilist::getViewerId() {
     Resources resources;
     QString queryText = resources.readResource(AppResourceKey::ALQueryViewerId).toString();
 
-    query["query"] = queryText;
+    bool isAuthRequest = true;
 
-    QJsonDocument document(query);
-    QByteArray postData = document.toJson(QJsonDocument::Compact);
+    auto callback = [this](const QJsonObject& data) {
+        QJsonObject viewer = data["Viewer"].toObject();
+        int viewerId = viewer["id"].toInt();
 
-    QJsonObject headers {
-        { "Content-Type", "application/json" },
-        { "Accept", "application/json" },
-        { "Authorization", QString("Bearer %1").arg(m_settings.value(AppSettingsKey::AccountAnilistToken).toString()) }
+        qDebug() << "VIEWER ID: " << viewerId;
+
+        m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
+
+        if (!m_settings.value(AppSettingsKey::AccountAnilistViewerId).isNull()) {
+            qDebug() << "Id Written";
+        } else {
+            qDebug() << "Failed to write token";
+        }
     };
 
-    NetworkManager::PostRequest genericTemporary;
-    QNetworkReply* reply = m_netRequest.sendPostRequest(genericTemporary);
-
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
-        if (statusCode.isValid()) {
-            int statusCodeInt = statusCode.toInt();
-            qDebug() << "HTTP status code:" << statusCodeInt;
-        } else {
-            qDebug() << "Failed to get HTTP status code.";
-        }
-
-        if (reply->error() != QNetworkReply::NoError) {
-            qDebug() << "Error:" << reply->errorString();
-        } else {
-            QByteArray responseData = reply->readAll();
-            qDebug() << "Response:" << responseData;
-
-            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
-            QJsonObject responseObject = responseDoc.object();
-            qDebug() << responseObject;
-
-            QJsonObject data = responseObject["data"].toObject();
-            qDebug() << "DATA: " << data;
-            QJsonObject viewer = data["Viewer"].toObject();
-            qDebug() << "Viewer: " << viewer;
-            int viewerId = viewer["id"].toInt();
-
-            qDebug() << "VIEWER ID: " << viewerId;
-
-            m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
-
-            if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
-                qDebug() << "Id Written";
-
-            else qDebug() << "Failed to write token";
-            // Process the JSON response as needed
-        }
-
-        reply->deleteLater();
-    });
-
-    // You cannot return the JSON object directly here as the request is asynchronous
-    // Instead, handle the processing inside the lambda connected to the finished signal
-
-    return QJsonObject(); // Return an empty JSON object or handle it as needed
+    sendAnilistRequest(queryText, isAuthRequest, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerLists() {
@@ -148,64 +106,36 @@ void Anilist::getViewerLists() {
         writeToDatabase(allEntriesArray);
     };
 
-    // Call the function to send the request with the callback
     sendAnilistRequest(queryText, isAuthRequest, variables, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerName() {
-    QJsonObject query;
-
     Resources resources;
     QString queryText = resources.readResource(AppResourceKey::ALQueryViewerName).toString();
 
-    query["query"] = queryText;
+    bool isAuthRequest = true;
 
-    QJsonDocument document(query);
-    QByteArray postData = document.toJson(QJsonDocument::Compact);
+    auto callback = [this](const QJsonObject& data) {
+        QJsonObject viewer = data["Viewer"].toObject();
+        QString viewerName = viewer["name"].toString();
 
-    NetworkManager::PostRequest genericTemporary;
+        qDebug() << "VIEWER NAME: " << viewerName;
 
-    QNetworkReply* reply = m_netRequest.sendPostRequest(genericTemporary);
+        m_settings.setValue(AppSettingsKey::AccountAnilistViewerName, viewerName);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
-        if (statusCode.isValid()) {
-            int statusCodeInt = statusCode.toInt();
-            qDebug() << "HTTP status code:" << statusCodeInt;
+        if (!m_settings.value(AppSettingsKey::AccountAnilistViewerName).isNull()) {
+            qDebug() << "Name Written";
         } else {
-            qDebug() << "Failed to get HTTP status code.";
+            qDebug() << "Failed to write token";
         }
+    };
 
-        if (reply->error() != QNetworkReply::NoError) {
-            qDebug() << "Error:" << reply->errorString();
-        } else {
-            QByteArray responseData = reply->readAll();
-            qDebug() << "Response:" << responseData;
-
-            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
-            QJsonObject responseObject = responseDoc.object();
-            qDebug() << responseObject;
-
-            QJsonObject data = responseObject["data"].toObject();
-            qDebug() << "DATA: " << data;
-            QJsonObject viewer = data["Viewer"].toObject();
-            qDebug() << "Viewer: " << viewer;
-            QString viewerName = viewer["name"].toString();
-
-            qDebug() << "VIEWER ID: " << viewerName;
-
-            m_settings.setValue(AppSettingsKey::AccountAnilistViewerName, viewerName); //maybe this should return a call to value so I can re-use it (for example on the line below)
-
-            if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerName ).isNull() )
-                qDebug() << "Id Written";
-
-            else qDebug() << "Failed to write token";
-            // Process the JSON response as needed
-        }
-
-        reply->deleteLater();
-    });
+    sendAnilistRequest(queryText, isAuthRequest, callback);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+// Helper function which makes variables optional
+void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback) {
+    sendAnilistRequest(queryText, isAuthRequest, QJsonObject(), callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables, std::function<void(const QJsonObject&)> callback) {
@@ -213,30 +143,36 @@ void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequ
     QNetworkReply* reply = m_netRequest.sendPostRequest(postRequest);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, callback]() {
-        QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
-        if (statusCode.isValid()) {
-            int statusCodeInt = statusCode.toInt();
-            qDebug() << "HTTP status code:" << statusCodeInt;
-        } else {
-            qDebug() << "Failed to get HTTP status code.";
-        }
-
-        if (reply->error() != QNetworkReply::NoError) {
-            qDebug() << "Error:" << reply->errorString();
-        } else {
-            QByteArray responseData = reply->readAll();
-            qDebug() << "Response:" << responseData;
-
-            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
-            QJsonObject responseObject = responseDoc.object();
-            QJsonObject data = responseObject["data"].toObject();
-
-            callback(data); // Call the callback function with the processed data
-        }
-
-        reply->deleteLater();
+        getSearchData(reply, callback);
     });
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback) {
+    QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    if (!statusCode.isValid()) {
+        qDebug() << "Failed to get HTTP status code.";
+        return;
+    }
+
+    int statusCodeInt = statusCode.toInt();
+    qDebug() << "HTTP status code:" << statusCodeInt;
+
+    if (reply->error() != QNetworkReply::NoError) {
+        qDebug() << "Error:" << reply->errorString();
+        return;
+    }
+
+    QByteArray responseData = reply->readAll();
+    qDebug() << "Response:" << responseData;
+
+    QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+    QJsonObject responseObject = responseDoc.object();
+    QJsonObject data = responseObject["data"].toObject();
+
+    callback(data); // Call the callback function with the processed data
+
+    reply->deleteLater();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool authorized, QJsonObject variables) {
@@ -261,8 +197,8 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
     };
 
     if (authorized) {
-        headers.insert("Authorization", QString("Bearer %1")
-                                            .arg(m_settings.value(AppSettingsKey::AccountAnilistToken).toString()));
+        headers.insert("Authorization", QString("Bearer %1").arg
+                                            (m_settings.value(AppSettingsKey::AccountAnilistToken).toString()));
     }
 
     postRequest.request = m_netRequest.createRequest(m_anilistUrl, headers);
@@ -297,34 +233,34 @@ QStringList Anilist::createDBTables() {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {
-    if (m_settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
-        //FileWriter fileManager;
-        //QString token = fileManager.readFile(QString("token.txt")); // This should prompt the user to authorize in the future
+    // if (m_settings.value(AppSettingsKey::AccountAnilistToken).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
+    //     //FileWriter fileManager;
+    //     //QString token = fileManager.readFile(QString("token.txt")); // This should prompt the user to authorize in the future
 
-        //m_settings.setValue(AppSettingsKey::AccountAnilistToken, token);
+    //     //m_settings.setValue(AppSettingsKey::AccountAnilistToken, token);
 
-        if ( !m_settings.value( AppSettingsKey::AccountAnilistToken ).isNull() )
-            qDebug() << "Token Written";
+    //     if ( !m_settings.value( AppSettingsKey::AccountAnilistToken ).isNull() )
+    //         qDebug() << "Token Written";
 
-        else qDebug() << "Failed to write token";
+    //     else qDebug() << "Failed to write token";
 
-    } else qDebug() << "Token already exists: ";
+    // } else qDebug() << "Token already exists: ";
 
-    if (m_settings.value(AppSettingsKey::AccountAnilistViewerId).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
+    // if (m_settings.value(AppSettingsKey::AccountAnilistViewerId).isNull()) { //TODO: dont think isNull() is right for this, if a setting doesnt exist QSettings seems to return a QVariant string, "could not open file", need to fix later
 
-        qDebug() << "IS NULL";
-        QJsonObject viewerId = getViewerId(); // This should prompt the user to authorize in the future
+    //     qDebug() << "IS NULL";
+    //     QJsonObject viewerId = getViewerId(); // This should prompt the user to authorize in the future
 
-        qDebug() << "RIGHT HERE";
-        qDebug() << viewerId["data"];
-        //QString token = response
-        m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
+    //     qDebug() << "RIGHT HERE";
+    //     qDebug() << viewerId["data"];
+    //     //QString token = response
+    //     m_settings.setValue(AppSettingsKey::AccountAnilistViewerId, viewerId);
 
-        if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
-            qDebug() << "Id Written";
+    //     if ( !m_settings.value( AppSettingsKey::AccountAnilistViewerId ).isNull() )
+    //         qDebug() << "Id Written";
 
-        else qDebug() << "Failed to write token";
+    //     else qDebug() << "Failed to write token";
 
-    } else qDebug() << "Id already exists";
+    // } else qDebug() << "Id already exists";
 }
 // --------------------------------------------------------------------------------------------------------------------------
