@@ -8,7 +8,7 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 #include <QJsonArray>
-
+#include "anime.h"
 
 //TODO: make "service"/"website" ABC?
 class Anilist : public QObject
@@ -33,7 +33,7 @@ public:
 
 signals:
     void requestFinished(const QJsonObject& data);
-    //void responseReceived(const QJsonObject& response);
+    void viewerListsReady(const QList<Anime>& mediaList);
 
 public slots:
     void searchAnime();
@@ -41,9 +41,12 @@ public slots:
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
+
+    bool onViewerListsReady(const QList<Anime>& mediaList);
     //bool insertAnime();
 
 private:
+    void connectSignals();
     void initializeAccountInfo();
     NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
 

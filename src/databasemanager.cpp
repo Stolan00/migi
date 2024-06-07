@@ -28,6 +28,7 @@ bool DatabaseManager::createTable(const QString& createTableQuery) {
         qDebug() << "Error: Unable to create table." << query.lastError();
         return false;
     }
+
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -53,19 +54,23 @@ bool DatabaseManager::insertIntoTable(const QString& tableName, const QVariantMa
         qDebug() << "Error: Unable to insert data." << query.lastError();
         return false;
     }
+
+    qDebug() << "INSERTED SUCCESSFULLY";
+
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList DatabaseManager::getAllTables() {
     QStringList tables;
 
-    if (m_database.isOpen()) {
-        QSqlQuery query("SELECT name FROM sqlite_master WHERE type='table';", m_database);
-        while (query.next()) {
-            tables << query.value(0).toString();
-        }
-    } else {
+    if (!m_database.isOpen()) {
         qWarning() << "Database is not open!";
+        return tables;
+    }
+
+    QSqlQuery query("SELECT name FROM sqlite_master WHERE type='table';", m_database);
+    while (query.next()) {
+        tables << query.value(0).toString();
     }
 
     return tables;

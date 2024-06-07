@@ -6,8 +6,9 @@
 #include <QDebug>
 // --------------------------------------------------------------------------------------------------------------------------
 Anilist::Anilist(QObject *parent) : QObject(parent){
+    connectSignals();
     initializeAccountInfo();
-    m_settings.setValue(AppSettingsKey::DatabasePath, "database");
+    m_settings.setValue(AppSettingsKey::DatabasePath, "database"); //why is this here
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -86,7 +87,7 @@ void Anilist::getViewerLists() {
 
     // Define the callback function for processing the data
     auto callback = [this](const QJsonObject& data) {
-        QJsonArray allEntriesArray;
+        QList<Anime> animeList;
 
         QJsonObject mlc = data["MediaListCollection"].toObject();
         QJsonArray lists = mlc["lists"].toArray();
@@ -99,14 +100,28 @@ void Anilist::getViewerLists() {
 
             QJsonArray entries = listObject["entries"].toArray();
             for (const QJsonValue& entryValue : entries) {
-                allEntriesArray.append(entryValue);
+                QJsonObject jsonFromEntry = entryValue.toObject();
+
+                Anime animeFromEntry(jsonFromEntry);
+
+                animeList.append(animeFromEntry);
             }
         }
-
-        writeToDatabase(allEntriesArray);
+        // Emit the signal with the populated list
+        qDebug() << "VIEWER LIST READY";
+        emit viewerListsReady(animeList);
     };
 
     sendAnilistRequest(queryText, isAuthRequest, variables, callback);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+bool Anilist::onViewerListsReady(const QList<Anime> &mediaList) {
+    for (auto& media : mediaList) {
+        qDebug() << "Testing Media Loop";
+        // writeToDatabase(media) will go here
+    }
+
+    qDebug() << "Media Processing Loop Finished";
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerName() {
@@ -164,13 +179,13 @@ void Anilist::getSearchData(QNetworkReply* reply, std::function<void(const QJson
     }
 
     QByteArray responseData = reply->readAll();
-    qDebug() << "Response:" << responseData;
+    //qDebug() << "Response:" << responseData;
 
     QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
     QJsonObject responseObject = responseDoc.object();
     QJsonObject data = responseObject["data"].toObject();
 
-    callback(data); // Call the callback function with the processed data
+    callback(data);
 
     reply->deleteLater();
 }
@@ -211,9 +226,30 @@ void Anilist::writeToDatabase(QJsonArray& entries) {
 
     qDebug() << tables;
 
+    QJsonObject entry = entries[0].toObject();
+    QJsonObject entryMedia = entry["media"].toObject();
+    QJsonObject entryTitles = entry["title"].toObject();
+    QJsonObject entryImage = entry["coverImage"].toObject();
+
+    QMap<QString, QVariant> mediaValues {
+        { "id", entryMedia["id"].toInt() },
+        { "titleRomaji",  entryTitles["romaji"].toString()  },
+        { "titleEnglish", entryTitles["english"].toString() },
+        { "titleNative",  entryTitles["native"].toString()  },
+        { "synopsis",     entryMedia["description"].toString() },
+        { "imageLink",    entryImage["large"].toString() },
+        { "episodes",     entryMedia["episodes"].toInt() }
+    };
+
+    qDebug() << entryMedia;
+    //qDebug() << entries;
+
+
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     qDebug() << dbPath;
     DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
+
+    db.insertIntoTable("Anime", mediaValues);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList Anilist::createDBTables() {
@@ -230,6 +266,10 @@ QStringList Anilist::createDBTables() {
     }
 
     return db.getAllTables();
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::connectSignals() {
+    connect(this, &Anilist::viewerListsReady, this, &Anilist::onViewerListsReady); //TODO: not sure if this should go in the lambda or here (probably here)
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {

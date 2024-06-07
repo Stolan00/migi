@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS Anime (
     titleEnglish TEXT, 
     titleNative TEXT, 
     synopsis TEXT, 
-    largeImage TEXT, 
+    imageLink TEXT, 
     episodes INTEGER
 );
