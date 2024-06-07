@@ -28,8 +28,8 @@ class Anilist : public QObject
 public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
-    void writeToDatabase(QJsonArray& entries);
-    QStringList createDBTables();
+    void writeAnimeToDatabase(const Anime &entry); //TODO: should be media eventually?
+    void writeMediaListToDatabase(const QList<Anime> &mediaList);
 
 signals:
     void requestFinished(const QJsonObject& data);
@@ -48,10 +48,11 @@ public slots:
 private:
     void connectSignals();
     void initializeAccountInfo();
-    NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
 
+    NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables = QJsonObject(), std::function<void(const QJsonObject&)> callback = [](const QJsonObject&){});
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
     void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
-
+    QStringList createDBTables();
+    void openDatabaseConnection();
 };

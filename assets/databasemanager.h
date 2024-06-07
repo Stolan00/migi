@@ -17,6 +17,7 @@ public:
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);
+    bool bulkInsertIntoTable(const QString& tableName, const QList<QVariantMap>& valuesList);
     QStringList getAllTables();
     QStringList getTableSchema(const QString& tableName);
 

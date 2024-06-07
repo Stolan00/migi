@@ -101,27 +101,29 @@ void Anilist::getViewerLists() {
             QJsonArray entries = listObject["entries"].toArray();
             for (const QJsonValue& entryValue : entries) {
                 QJsonObject jsonFromEntry = entryValue.toObject();
+                QJsonObject mediaFromEntry = jsonFromEntry["media"].toObject();
 
-                Anime animeFromEntry(jsonFromEntry);
+                //qDebug() << mediaFromEntry;
+
+                Anime animeFromEntry(mediaFromEntry);
+                qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
 
                 animeList.append(animeFromEntry);
             }
         }
         // Emit the signal with the populated list
         qDebug() << "VIEWER LIST READY";
-        emit viewerListsReady(animeList);
+        emit viewerListsReady(animeList); //TODO: awkward because it emits a signal in a callback when the entire thing could just be a slot
     };
 
     sendAnilistRequest(queryText, isAuthRequest, variables, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::onViewerListsReady(const QList<Anime> &mediaList) {
-    for (auto& media : mediaList) {
-        qDebug() << "Testing Media Loop";
-        // writeToDatabase(media) will go here
-    }
 
-    qDebug() << "Media Processing Loop Finished";
+    writeMediaListToDatabase(mediaList);
+
+    return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerName() {
@@ -221,29 +223,36 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
     return postRequest;
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::writeToDatabase(QJsonArray& entries) {
+void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db(dbPath);
+
+    db.deleteAllTables();
+
+    if (!db.createConnection(dbPath)) {
+        qDebug() << "Error: Unable to open database.";
+        return;
+    }
+
+    QList<QVariantMap> valuesList;
+    for (const Anime& anime : mediaList) {
+        valuesList.append(anime.asMap());
+    }
+
+    if (!db.bulkInsertIntoTable("Anime", valuesList)) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::writeAnimeToDatabase(const Anime& entry) {
     QStringList tables = createDBTables();
 
     qDebug() << tables;
 
-    QJsonObject entry = entries[0].toObject();
-    QJsonObject entryMedia = entry["media"].toObject();
-    QJsonObject entryTitles = entry["title"].toObject();
-    QJsonObject entryImage = entry["coverImage"].toObject();
-
-    QMap<QString, QVariant> mediaValues {
-        { "id", entryMedia["id"].toInt() },
-        { "titleRomaji",  entryTitles["romaji"].toString()  },
-        { "titleEnglish", entryTitles["english"].toString() },
-        { "titleNative",  entryTitles["native"].toString()  },
-        { "synopsis",     entryMedia["description"].toString() },
-        { "imageLink",    entryImage["large"].toString() },
-        { "episodes",     entryMedia["episodes"].toInt() }
-    };
-
-    qDebug() << entryMedia;
-    //qDebug() << entries;
-
+    QMap mediaValues = entry.asMap();
 
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     qDebug() << dbPath;
@@ -267,6 +276,12 @@ QStringList Anilist::createDBTables() {
 
     return db.getAllTables();
 }
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::openDatabaseConnection() {
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db( dbPath );
+}
+
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::connectSignals() {
     connect(this, &Anilist::viewerListsReady, this, &Anilist::onViewerListsReady); //TODO: not sure if this should go in the lambda or here (probably here)

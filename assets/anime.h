@@ -10,7 +10,7 @@ public:
     Anime();
     Anime(QJsonObject animeValues);
 
-    QMap<QString, QVariant> asMap();
+    QMap<QString, QVariant> asMap() const;
 
     // Attributes
     int id;
