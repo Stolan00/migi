@@ -21,6 +21,34 @@ bool DatabaseManager::createConnection(const QString& path) {
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+bool DatabaseManager::printAllValuesFromTable(const QString& tableName) {
+    if (!m_database.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    QSqlQuery query;
+    QString selectQuery = QString("SELECT * FROM %1").arg(tableName);
+
+    if (!query.exec(selectQuery)) {
+        qDebug() << "Error: Failed to execute query -" << query.lastError();
+        return false;
+    }
+
+    QSqlRecord record = query.record();
+    int fieldCount = record.count();
+
+    while (query.next()) {
+        QStringList rowValues;
+        for (int i = 0; i < fieldCount; ++i) {
+            rowValues << query.value(i).toString();
+        }
+        qDebug() << rowValues.join(", ");
+    }
+
+    return true;
+}
+// --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::createTable(const QString& createTableQuery) {
     QSqlQuery query;
 
@@ -60,7 +88,7 @@ bool DatabaseManager::insertIntoTable(const QString& tableName, const QVariantMa
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
-bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<QVariantMap>& valuesList) {
+bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<QHash<QString, QVariant>>& valuesList) {
     if (valuesList.isEmpty()) {
         return true; // Nothing to insert
     }
@@ -69,46 +97,56 @@ bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<
 
     // Begin transaction
     if (!query.exec("BEGIN TRANSACTION")) {
-        qDebug() << "Error: Failed to begin transaction.";
+        qDebug() << "Error: Failed to begin transaction." << query.lastError();
         return false;
     }
 
-    // Prepare the insert statement
-    const QVariantMap& firstValues = valuesList.first();
-    QStringList columns = firstValues.keys();
+    // Ensure columns are in the correct order according to the schema
+    QStringList orderedColumns = {"id", "titleRomaji", "titleEnglish", "titleNative", "synopsis", "imageLink", "episodes"};
     QStringList placeholders;
 
-    for (const QString& column : columns) {
+    for (const QString& column : orderedColumns) {
         placeholders << ":" + column;
     }
 
     QString insertQuery = "INSERT INTO " + tableName + " ("
-                          + columns.join(", ") + ") VALUES (" + placeholders.join(", ") + ");";
+                          + orderedColumns.join(", ") + ") VALUES (" + placeholders.join(", ") + ");";
 
-    query.prepare(insertQuery);
+    qDebug() << "Insert Query: " << insertQuery;
+    if (!query.prepare(insertQuery)) {
+        qDebug() << "Error: Failed to prepare insert query." << query.lastError();
+        return false;
+    }
 
     // Bind values and execute the statement for each record
-    for (const QVariantMap& values : valuesList) {
-        for (const QString& column : columns) {
-            query.bindValue(":" + column, values.value(column));
+    for (const QHash<QString, QVariant>& values : valuesList) {
+        //qDebug() << "Inserting values: " << values;
+
+        for (const QString& column : orderedColumns) {
+            QVariant value = values.value(column);
+            query.bindValue(":" + column, value);
+            //qDebug() << "Binding " << column << " with value: " << value;
         }
 
         if (!query.exec()) {
             qDebug() << "Error: Failed to execute insert query:" << query.lastError();
-            query.exec("ROLLBACK"); // Rollback the transaction on error
+            if (!query.exec("ROLLBACK")) {
+                qDebug() << "Error: Failed to rollback transaction." << query.lastError();
+            }
             return false;
         }
     }
 
     // Commit transaction
     if (!query.exec("COMMIT")) {
-        qDebug() << "Error: Failed to commit transaction.";
+        qDebug() << "Error: Failed to commit transaction." << query.lastError();
         return false;
     }
 
     qDebug() << "Bulk insert successful.";
     return true;
 }
+
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList DatabaseManager::getAllTables() {
     QStringList tables;

@@ -22,8 +22,8 @@ Anime::Anime(QJsonObject animeValues) {
     episodes = animeValues["episodes"].toInt();
 }
 // --------------------------------------------------------------------------------------------------------------------------
-QMap<QString, QVariant> Anime::asMap() const {
-    QMap<QString, QVariant> mediaValues {
+QHash<QString, QVariant> Anime::asHash() const {
+    QHash<QString, QVariant> mediaValues {
         { "id", id },
         { "titleRomaji",  titleRomaji  },
         { "titleEnglish", titleEnglish },

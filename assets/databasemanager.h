@@ -4,6 +4,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QDebug>
+#include <QSqlRecord>
 
 #include <QObject>
 
@@ -17,7 +18,8 @@ public:
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);
-    bool bulkInsertIntoTable(const QString& tableName, const QList<QVariantMap>& valuesList);
+    bool bulkInsertIntoTable(const QString& tableName, const QList<QHash<QString, QVariant> > &valuesList);
+    bool printAllValuesFromTable(const QString& tableName);
     QStringList getAllTables();
     QStringList getTableSchema(const QString& tableName);
 

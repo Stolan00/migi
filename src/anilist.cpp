@@ -229,14 +229,18 @@ void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
 
     db.deleteAllTables();
 
+    createDBTables();
+
     if (!db.createConnection(dbPath)) {
         qDebug() << "Error: Unable to open database.";
         return;
     }
 
-    QList<QVariantMap> valuesList;
+    QList<QHash<QString, QVariant>> valuesList;
     for (const Anime& anime : mediaList) {
-        valuesList.append(anime.asMap());
+        //qDebug() << anime.asHash();
+
+        valuesList.append(anime.asHash());
     }
 
     if (!db.bulkInsertIntoTable("Anime", valuesList)) {
@@ -244,7 +248,10 @@ void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
     } else {
         qDebug() << "Bulk insert succeeded.";
     }
+
+    db.printAllValuesFromTable("Anime");
 }
+
 
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
@@ -252,13 +259,13 @@ void Anilist::writeAnimeToDatabase(const Anime& entry) {
 
     qDebug() << tables;
 
-    QMap mediaValues = entry.asMap();
+    QHash<QString, QVariant> mediaValues = entry.asHash();
 
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     qDebug() << dbPath;
     DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
 
-    db.insertIntoTable("Anime", mediaValues);
+    //db.insertIntoTable("Anime", mediaValues);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList Anilist::createDBTables() {
