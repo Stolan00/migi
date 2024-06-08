@@ -1,5 +1,4 @@
-#ifndef DATABASEMANAGER_H
-#define DATABASEMANAGER_H
+#pragma once
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -15,9 +14,11 @@ class DatabaseManager : public QObject
 
 public:
     DatabaseManager(const QString& path);
+    bool executeQuery(const QString& queryStr);
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);
+
     bool bulkInsertIntoTable(const QString& tableName, const QList<QHash<QString, QVariant> > &valuesList);
     bool printAllValuesFromTable(const QString& tableName);
     QStringList getAllTables();
@@ -29,5 +30,3 @@ public:
 
 signals:
 };
-
-#endif // DATABASEMANAGER_H

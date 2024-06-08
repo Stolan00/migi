@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS EntryStatus (
-    id INTEGER PRIMARY KEY,
-    name TEXT,
+    statusId INTEGER PRIMARY KEY,
+    statusName TEXT,
     modified INTEGER
 );

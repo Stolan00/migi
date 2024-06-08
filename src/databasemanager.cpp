@@ -9,6 +9,20 @@ DatabaseManager::~DatabaseManager() {
     m_database.close();
 }
 // --------------------------------------------------------------------------------------------------------------------------
+bool DatabaseManager::executeQuery(const QString& queryStr) {
+    if (!m_database.isOpen()) {
+        qDebug() << "Error: Database is not open.";
+        return false;
+    }
+
+    QSqlQuery query(m_database);
+    if (!query.exec(queryStr)) {
+        qDebug() << "Error: Failed to execute query -" << query.lastError();
+        return false;
+    }
+    return true;
+}
+// --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::createConnection(const QString& path) {
     m_database = QSqlDatabase::addDatabase("QSQLITE");
     m_database.setDatabaseName(path);
@@ -54,6 +68,7 @@ bool DatabaseManager::createTable(const QString& createTableQuery) {
 
     if (!query.exec(createTableQuery)) {
         qDebug() << "Error: Unable to create table." << query.lastError();
+        qDebug() << createTableQuery;
         return false;
     }
 

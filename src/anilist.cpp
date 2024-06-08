@@ -8,7 +8,7 @@
 Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
-    m_settings.setValue(AppSettingsKey::DatabasePath, "database"); //why is this here
+    m_settings.setValue(AppSettingsKey::DatabasePath, "database.sqlite"); //why is this here
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -248,11 +248,7 @@ void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
     } else {
         qDebug() << "Bulk insert succeeded.";
     }
-
-    db.printAllValuesFromTable("Anime");
 }
-
-
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
     QStringList tables = createDBTables();
@@ -279,6 +275,27 @@ QStringList Anilist::createDBTables() {
     for (auto& table : tables) {
         if(db.createTable(table))
             qDebug() << "TABLE CREATED";
+    }
+
+
+    //TODO: lazy
+    QStringList insertQueries = {
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (0, 'CURRENT', 0);",
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (1, 'PLANNING', 0);",
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (2, 'COMPLETED', 0);",
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (3, 'DROPPED', 0);",
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (4, 'PAUSED', 0);",
+        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (5, 'REPEATING', 0);",
+
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (0, 'FINISHED', 0);",
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (1, 'RELEASING', 0);",
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (2, 'NOT_YET_RELEASED', 0);",
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (3, 'CANCELLED', 0);",
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (4, 'HIATUS', 0);"
+    };
+
+    for (const QString& insertQuery : insertQueries) {
+        db.executeQuery(insertQuery);
     }
 
     return db.getAllTables();

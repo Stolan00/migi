@@ -5,5 +5,7 @@ CREATE TABLE IF NOT EXISTS Anime (
     titleNative TEXT, 
     synopsis TEXT, 
     imageLink TEXT, 
-    episodes INTEGER
+    episodes INTEGER,
+    mediaStatus INTEGER,
+    FOREIGN KEY (mediaStatus) REFERENCES MediaStatus(id)
 );
