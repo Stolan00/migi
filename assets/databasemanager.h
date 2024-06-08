@@ -22,6 +22,7 @@ public:
     bool printAllValuesFromTable(const QString& tableName);
     QStringList getAllTables();
     QStringList getTableSchema(const QString& tableName);
+    QStringList getColumnNames(const QString& tableName);
 
     bool deleteAllTables(); // TODO: probably shouldnt be public, leaving for development
     ~DatabaseManager();

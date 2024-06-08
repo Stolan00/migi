@@ -102,39 +102,44 @@ bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<
     }
 
     // Ensure columns are in the correct order according to the schema
-    QStringList orderedColumns = {"id", "titleRomaji", "titleEnglish", "titleNative", "synopsis", "imageLink", "episodes"};
+    QStringList orderedColumns = getColumnNames(tableName);
     QStringList placeholders;
 
     for (const QString& column : orderedColumns) {
-        placeholders << ":" + column;
+        placeholders << "?";
     }
 
     QString insertQuery = "INSERT INTO " + tableName + " ("
-                          + orderedColumns.join(", ") + ") VALUES (" + placeholders.join(", ") + ");";
+                          + orderedColumns.join(", ") + ") VALUES ";
 
-    qDebug() << "Insert Query: " << insertQuery;
+    QStringList valuesPlaceholderGroups;
+    for (int i = 0; i < valuesList.size(); ++i) {
+        valuesPlaceholderGroups << "(" + placeholders.join(", ") + ")";
+    }
+
+    insertQuery += valuesPlaceholderGroups.join(", ");
+
+    qDebug() << "Bulk Insert Query: " << insertQuery;
     if (!query.prepare(insertQuery)) {
-        qDebug() << "Error: Failed to prepare insert query." << query.lastError();
+        qDebug() << "Error: Failed to prepare bulk insert query." << query.lastError();
         return false;
     }
 
-    // Bind values and execute the statement for each record
+    // Bind values for all rows
+    int bindIndex = 0;
     for (const QHash<QString, QVariant>& values : valuesList) {
-        //qDebug() << "Inserting values: " << values;
-
         for (const QString& column : orderedColumns) {
-            QVariant value = values.value(column);
-            query.bindValue(":" + column, value);
-            //qDebug() << "Binding " << column << " with value: " << value;
+            query.bindValue(bindIndex++, values.value(column));
         }
+    }
 
-        if (!query.exec()) {
-            qDebug() << "Error: Failed to execute insert query:" << query.lastError();
-            if (!query.exec("ROLLBACK")) {
-                qDebug() << "Error: Failed to rollback transaction." << query.lastError();
-            }
-            return false;
+    // Execute the bulk insert query
+    if (!query.exec()) {
+        qDebug() << "Error: Failed to execute bulk insert query:" << query.lastError();
+        if (!query.exec("ROLLBACK")) {
+            qDebug() << "Error: Failed to rollback transaction." << query.lastError();
         }
+        return false;
     }
 
     // Commit transaction
@@ -146,7 +151,6 @@ bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<
     qDebug() << "Bulk insert successful.";
     return true;
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList DatabaseManager::getAllTables() {
     QStringList tables;
@@ -184,6 +188,26 @@ QStringList DatabaseManager::getTableSchema(const QString& tableName) {
     }
 
     return schema;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QStringList DatabaseManager::getColumnNames(const QString& tableName) {
+    QStringList columnNames;
+    QSqlQuery query;
+
+    // Prepare the query to get column names
+    query.prepare("PRAGMA table_info(" + tableName + ");");
+
+    if (!query.exec()) {
+        qDebug() << "Error: Failed to execute query to get column names." << query.lastError();
+        return columnNames;
+    }
+
+    // Iterate through the result set to collect column names
+    while (query.next()) {
+        columnNames << query.value("name").toString();
+    }
+
+    return columnNames;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::deleteAllTables() {
