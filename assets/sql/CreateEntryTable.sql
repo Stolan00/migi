@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS Entry (
     id INTEGER PRIMARY KEY,
-    MediaId INTEGER,
-    Status INTEGER,
+    mediaId INTEGER,
+    status INTEGER,
     completedDay INTEGER,
     completedMonth INTEGER,
     completedYear INTEGER,
@@ -14,6 +14,6 @@ CREATE TABLE IF NOT EXISTS Entry (
     startedMonth INTEGER,
     startedYear INTEGER,
     modified INTEGER,
-    FOREIGN KEY (MediaId) REFERENCES Anime(id),
-    FOREIGN KEY (Status) REFERENCES EntryStatus(id)
+    FOREIGN KEY (mediaId) REFERENCES Anime(id),
+    FOREIGN KEY (status) REFERENCES EntryStatus(id)
 );

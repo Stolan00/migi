@@ -223,6 +223,8 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
     return postRequest;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+// TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
+//       as-needed
 void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     DatabaseManager db(dbPath);

@@ -22,8 +22,6 @@ Anime::Anime(QJsonObject animeValues) {
     episodes = animeValues["episodes"].toInt();
 
     status = toEnum( animeValues["status"].toString() );
-
-    qDebug() << status;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QHash<QString, QVariant> Anime::asHash() const {
@@ -35,7 +33,7 @@ QHash<QString, QVariant> Anime::asHash() const {
         { "synopsis",     synopsis     },
         { "imageLink",    imageLink    },
         { "episodes",     episodes     },
-        { "mediaStatus",  status       }
+        { "mediaStatus", static_cast<int>(status) }
     };
 
     return mediaValues;
@@ -43,16 +41,16 @@ QHash<QString, QVariant> Anime::asHash() const {
 // --------------------------------------------------------------------------------------------------------------------------
 Anime::MediaStatus Anime::toEnum(const QString& status) {
     if (status == "FINISHED") {
-        return FINISHED;
+        return MediaStatus::FINISHED;
     } else if (status == "RELEASING") {
-        return RELEASING;
+        return MediaStatus::RELEASING;
     } else if (status == "NOT_YET_RELEASED") {
-        return NOT_YET_RELEASED;
+        return MediaStatus::NOT_YET_RELEASED;
     } else if (status == "HIATUS") {
-        return HIATUS;
+        return MediaStatus::HIATUS;
     } else {
         // Handle unknown status case. You can throw an exception, return a default value, or handle it as needed.
         // For this example, let's return FINISHED as a default value.
-        return FINISHED;
+        return MediaStatus::FINISHED;
     }
 }
