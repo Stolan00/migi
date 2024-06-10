@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS Genre (
-    id INTEGER PRIMARY KEY,
-    name TEXT,
+CREATE TABLE Genre (
+    genreId INTEGER PRIMARY KEY,
+    genreName TEXT UNIQUE,
     modified INTEGER
 );

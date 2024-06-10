@@ -2,13 +2,14 @@
 
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 class Anime
 {
 
 public:
     Anime();
-    Anime(QJsonObject animeValues);
+    Anime(const QJsonObject jsonValues);
 
         //TODO: put in 'Media' ABC? (if going to allow manga)
         //or just make it an enum class
@@ -29,7 +30,20 @@ public:
         REPEATING
     };
 
-    struct listEntryInfo {
+    enum class MediaFormat { //TODO: probably doesnt belong here
+        TV,
+        TV_SHORT,
+        MOVIE,
+        SPECIAL,
+        OVA,
+        ONA,
+        MUSIC,
+        MANGA,
+        NOVEL,
+        ONE_SHOT
+    };
+
+    struct ListEntryInfo {
         int id;
 
         int completedDay,
@@ -50,14 +64,17 @@ public:
 
         bool isPrivate;
 
-        //int modified?
+        int modified;
     };
 
     QHash<QString, QVariant> asHash() const;
+    QHash<QString, QVariant> myInfoAsHash() const;
+    int getGenreIndex(const QString& genre) const;
 
     // Attributes
-    int id;
+    int id, idMal;
     int episodes;
+    int anilistUpdatedAt;
 
     QString titleRomaji;
     QString titleEnglish;
@@ -65,9 +82,16 @@ public:
     QString synopsis;
     QString imageLink;
 
-    MediaStatus status;
+    MediaStatus   status;
+    ListEntryInfo myInfo;
+    MediaFormat   format;
+
+    QStringList   genres;
+
 signals:
 
 private:
-    MediaStatus toEnum(const QString& status);
+    MediaStatus toMediaStatusEnum(const QString& status);
+    EntryStatus toEntryStatusEnum(const QString& status);
+    MediaFormat toMediaFormatEnum(const QString& format);
 };

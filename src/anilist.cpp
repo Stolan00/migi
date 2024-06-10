@@ -101,11 +101,11 @@ void Anilist::getViewerLists() {
             QJsonArray entries = listObject["entries"].toArray();
             for (const QJsonValue& entryValue : entries) {
                 QJsonObject jsonFromEntry = entryValue.toObject();
-                QJsonObject mediaFromEntry = jsonFromEntry["media"].toObject();
+                // QJsonObject mediaFromEntry = jsonFromEntry["media"].toObject();
 
                 //qDebug() << mediaFromEntry;
 
-                Anime animeFromEntry(mediaFromEntry);
+                Anime animeFromEntry(jsonFromEntry);
                 qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
 
                 animeList.append(animeFromEntry);
@@ -121,7 +121,7 @@ void Anilist::getViewerLists() {
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::onViewerListsReady(const QList<Anime> &mediaList) {
 
-    writeMediaListToDatabase(mediaList);
+    populateDatabase(mediaList);
 
     return true;
 }
@@ -225,7 +225,7 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
 // --------------------------------------------------------------------------------------------------------------------------
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
-void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
+void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     DatabaseManager db(dbPath);
 
@@ -238,14 +238,38 @@ void Anilist::writeMediaListToDatabase(const QList<Anime>& mediaList) {
         return;
     }
 
-    QList<QHash<QString, QVariant>> valuesList;
+    QList<QHash<QString, QVariant>> mediaValuesList;
+    QList<QHash<QString, QVariant>> myInfoValuesList;
+    QList<QHash<QString, QVariant>> animeGenreList;
+
     for (const Anime& anime : mediaList) {
         //qDebug() << anime.asHash();
 
-        valuesList.append(anime.asHash());
+        mediaValuesList.append(anime.asHash());
+        myInfoValuesList.append( anime.myInfoAsHash() );
+
+        for (const QString& genre : anime.genres) {
+            QHash<QString, QVariant> animeGenre {
+                { "genreId", anime.getGenreIndex(genre)},
+                { "animeId", anime.id}
+            };
+            animeGenreList.append(animeGenre);
+        }
     }
 
-    if (!db.bulkInsertIntoTable("Anime", valuesList)) {
+    if ( !db.bulkInsertIntoTable("Anime", mediaValuesList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
         qDebug() << "Bulk insert failed.";
     } else {
         qDebug() << "Bulk insert succeeded.";
@@ -293,7 +317,38 @@ QStringList Anilist::createDBTables() {
         "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (1, 'RELEASING', 0);",
         "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (2, 'NOT_YET_RELEASED', 0);",
         "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (3, 'CANCELLED', 0);",
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (4, 'HIATUS', 0);"
+        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (4, 'HIATUS', 0);",
+
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (0, 'TV', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (1, 'TV_SHORT', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (2, 'MOVIE', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (3, 'SPECIAL', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (4, 'OVA', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (5, 'ONA', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (6, 'MUSIC', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (7, 'MANGA', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (8, 'NOVEL', 0);",
+        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (9, 'ONE_SHOT', 0);",
+
+        "INSERT INTO Genre (genreId, genreName, modified) VALUES (0, 'Action', 0);",
+        "INSERT INTO Genre (genreName) VALUES ('Adventure');",
+        "INSERT INTO Genre (genreName) VALUES ('Comedy');",
+        "INSERT INTO Genre (genreName) VALUES ('Drama');",
+        "INSERT INTO Genre (genreName) VALUES ('Ecchi');",
+        "INSERT INTO Genre (genreName) VALUES ('Fantasy');",
+        "INSERT INTO Genre (genreName) VALUES ('Hentai');",
+        "INSERT INTO Genre (genreName) VALUES ('Horror');",
+        "INSERT INTO Genre (genreName) VALUES ('Mahou Shoujo');",
+        "INSERT INTO Genre (genreName) VALUES ('Mecha');",
+        "INSERT INTO Genre (genreName) VALUES ('Music');",
+        "INSERT INTO Genre (genreName) VALUES ('Mystery');",
+        "INSERT INTO Genre (genreName) VALUES ('Psychological');",
+        "INSERT INTO Genre (genreName) VALUES ('Romance');",
+        "INSERT INTO Genre (genreName) VALUES ('Sci-Fi');",
+        "INSERT INTO Genre (genreName) VALUES ('Slice of Life');",
+        "INSERT INTO Genre (genreName) VALUES ('Sports');",
+        "INSERT INTO Genre (genreName) VALUES ('Supernatural');",
+        "INSERT INTO Genre (genreName) VALUES ('Thriller');",
     };
 
     for (const QString& insertQuery : insertQueries) {

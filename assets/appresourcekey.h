@@ -16,10 +16,9 @@ enum class AppResourceKey {
     CreateAnimeTable,
     CreateAnimeGenreTable,
     CreateAnimeStatusTable,
-    CreateAnimeSynonymTable,
     CreateEntryStatusTable,
     CreateEntryTable,
-    CreateFormatTable,
+    CreateMediaFormatTable,
     CreateGenreTable,
     CreateModifiedTrigger,
     CreateStatusTable

@@ -29,7 +29,7 @@ public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
     void writeAnimeToDatabase(const Anime &entry); //TODO: should be media eventually?
-    void writeMediaListToDatabase(const QList<Anime> &mediaList);
+    void populateDatabase(const QList<Anime> &mediaList);
 
 signals:
     void requestFinished(const QJsonObject& data);

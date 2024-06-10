@@ -11,10 +11,9 @@
         <file alias="CreateAnimeTable.sql">sql/CreateAnimeTable.sql</file>
         <file alias="CreateAnimeGenreTable.sql">sql/CreateAnimeGenreTable.sql</file>
         <file alias="CreateMediaStatusTable.sql">sql/CreateMediaStatusTable.sql</file>
-        <file alias="CreateAnimeSynonymTable.sql">sql/CreateAnimeSynonymTable.sql</file>
         <file alias="CreateEntryStatusTable.sql">sql/CreateEntryStatusTable.sql</file>
         <file alias="CreateEntryTable.sql">sql/CreateEntryTable.sql</file>
-        <file alias="CreateFormatTable.sql">sql/CreateFormatTable.sql</file>
+        <file alias="CreateMediaFormatTable.sql">sql/CreateMediaFormatTable.sql</file>
         <file alias="CreateGenreTable.sql">sql/CreateGenreTable.sql</file>
         <file alias="CreateModifiedTrigger.sql">sql/CreateModifiedTrigger.sql</file>
     </qresource>
