@@ -80,8 +80,9 @@ Anime::Anime(const QJsonObject jsonValues) {
         QJsonObject edgeObj = value.toObject();
         QJsonObject nodeObj = edgeObj["node"].toObject();
         QString studioName = nodeObj["name"].toString();
-        studios.append(studioName);
-        qDebug() << studioName;
+        int studioId = nodeObj["id"].toInt();
+        studios.insert(studioName, studioId);
+        qDebug() << studios[studioName];
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------

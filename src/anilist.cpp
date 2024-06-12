@@ -244,11 +244,13 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     QList<QHash<QString, QVariant>> mediaValuesList;
     QList<QHash<QString, QVariant>> myInfoValuesList;
     QList<QHash<QString, QVariant>> animeGenreList;
+    QList<QHash<QString, QVariant>> studioList;
+    QList<QHash<QString, QVariant>> animeStudioList;
 
     for (const Anime& anime : mediaList) {
         //qDebug() << anime.asHash();
 
-        mediaValuesList.append(anime.asHash());
+        mediaValuesList.append( anime.asHash() );
         myInfoValuesList.append( anime.myInfoAsHash() );
 
         for (const QString& genre : anime.genres) {
@@ -257,6 +259,33 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
                 { "animeId", anime.id}
             };
             animeGenreList.append(animeGenre);
+        }
+
+        for (const QString& studioName : anime.studios.keys()) {
+            QHash<QString, QVariant> studio {
+                { "studioId", anime.studios[studioName] },
+                { "studioName", studioName }
+            };
+
+            // Check if studioList already contains the studio based on studioName
+            bool studioExists = false;
+            for (const QHash<QString, QVariant>& existingStudio : studioList) {
+                if (existingStudio["studioName"] == studioName) {
+                    studioExists = true;
+                    break;
+                }
+            }
+
+            if (!studioExists) {
+                studioList.append(studio);
+            }
+
+            QHash<QString, QVariant> animeStudio {
+                { "studioId", anime.studios[studioName] },
+                { "animeId", anime.id }
+            };
+
+            animeStudioList.append(animeStudio);
         }
     }
 
@@ -325,6 +354,18 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     }
 
     if ( !db.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("Studio", studioList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
         qDebug() << "Bulk insert failed.";
     } else {
         qDebug() << "Bulk insert succeeded.";

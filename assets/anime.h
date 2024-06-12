@@ -86,7 +86,7 @@ public:
     MediaFormat   format;
 
     QStringList   genres;
-    QStringList   studios;
+    QHash<QString, QVariant> studios;
 
 signals:
 
