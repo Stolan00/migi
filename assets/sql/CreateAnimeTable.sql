@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS Anime (
     episodes INTEGER,
     mediaStatus INTEGER,
     mediaFormat INTEGER,
-    anilistUpdatedAt INTEGER,
-    modified,
+    anilistModified INTEGER,
+    modified INTEGER,
     FOREIGN KEY (mediaStatus) REFERENCES MediaStatus(id)
     FOREIGN KEY (mediaFormat) REFERENCES MediaFormat(id)
 );

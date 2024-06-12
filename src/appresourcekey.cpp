@@ -2,24 +2,26 @@
 // --------------------------------------------------------------------------------------------------------------------------
 QString toString(AppResourceKey key) {
     static const QMap<AppResourceKey, QString> keyToString {
-       // GraphQL Queries
-       { AppResourceKey::ALQueryMedia,        ":/assets/gql/Media.gql"               },
-       { AppResourceKey::ALQueryMediaFields,  ":/assets/gql/MediaFields.gql"         },
-       { AppResourceKey::ALQueryMLCollection, ":/assets/gql/MediaListCollection.gql" },
-       { AppResourceKey::ALQueryMLFields,     ":/assets/gql/MediaListFields.gql"     },
-       { AppResourceKey::ALQueryViewerId,     ":/assets/gql/ViewerId.gql"            },
-       { AppResourceKey::ALQueryViewerName,   ":/assets/gql/ViewerName.gql"          },
+        // GraphQL Queries
+        { AppResourceKey::ALQueryMedia,        ":/assets/gql/Media.gql"               },
+        { AppResourceKey::ALQueryMediaFields,  ":/assets/gql/MediaFields.gql"         },
+        { AppResourceKey::ALQueryMLCollection, ":/assets/gql/MediaListCollection.gql" },
+        { AppResourceKey::ALQueryMLFields,     ":/assets/gql/MediaListFields.gql"     },
+        { AppResourceKey::ALQueryViewerId,     ":/assets/gql/ViewerId.gql"            },
+        { AppResourceKey::ALQueryViewerName,   ":/assets/gql/ViewerName.gql"          },
 
-       // SQL Queries
-       { AppResourceKey::CreateAnimeTable,        ":/assets/sql/CreateAnimeTable.sql"        },
-       { AppResourceKey::CreateAnimeGenreTable,   ":/assets/sql/CreateAnimeGenreTable.sql"   },
-       { AppResourceKey::CreateAnimeStatusTable,  ":/assets/sql/CreateAnimeStatusTable.sql"  },
-       { AppResourceKey::CreateEntryStatusTable,  ":/assets/sql/CreateEntryStatusTable.sql"  },
-       { AppResourceKey::CreateEntryTable,        ":/assets/sql/CreateEntryTable.sql"        },
-       { AppResourceKey::CreateMediaFormatTable,  ":/assets/sql/CreateMediaFormatTable.sql"  },
-       { AppResourceKey::CreateGenreTable,        ":/assets/sql/CreateGenreTable.sql"        },
-       { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/CreateModifiedTrigger.sql"   },
-       { AppResourceKey::CreateStatusTable,       ":/assets/sql/CreateStatusTable.sql"       },
+        // SQL Queries
+        { AppResourceKey::CreateAnimeTable,        ":/assets/sql/CreateAnimeTable.sql"        },
+        { AppResourceKey::CreateAnimeGenreTable,   ":/assets/sql/CreateAnimeGenreTable.sql"   },
+        { AppResourceKey::CreateAnimeStatusTable,  ":/assets/sql/CreateAnimeStatusTable.sql"  },
+        { AppResourceKey::CreateEntryStatusTable,  ":/assets/sql/CreateEntryStatusTable.sql"  },
+        { AppResourceKey::CreateEntryTable,        ":/assets/sql/CreateEntryTable.sql"        },
+        { AppResourceKey::CreateMediaFormatTable,  ":/assets/sql/CreateMediaFormatTable.sql"  },
+        { AppResourceKey::CreateGenreTable,        ":/assets/sql/CreateGenreTable.sql"        },
+        { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/CreateModifiedTrigger.sql"   },
+        { AppResourceKey::CreateStatusTable,       ":/assets/sql/CreateStatusTable.sql"       },
+        { AppResourceKey::CreateStudioTable,       ":/assets/sql/CreateStudioTable.sql"       },
+        { AppResourceKey::CreateAnimeStudioTable,  ":/assets/sql/CreateAnimeStudioTable.sql"  },
     };
 
     return keyToString.value(key, "");

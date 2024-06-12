@@ -4,6 +4,7 @@
 #include <QtSql/QSqlError>
 #include <QDebug>
 #include <QSqlRecord>
+#include "filewriter.h"
 
 #include <QObject>
 
@@ -24,6 +25,9 @@ public:
     QStringList getAllTables();
     QStringList getTableSchema(const QString& tableName);
     QStringList getColumnNames(const QString& tableName);
+
+    void executeSqlScript(const QString &filePath);
+    void executeQueriesFromFile(QFile *file, QSqlQuery *query);
 
     bool deleteAllTables(); // TODO: probably shouldnt be public, leaving for development
     ~DatabaseManager();

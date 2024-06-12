@@ -12,7 +12,6 @@ public:
     Anime(const QJsonObject jsonValues);
 
         //TODO: put in 'Media' ABC? (if going to allow manga)
-        //or just make it an enum class
     enum class MediaStatus {
         FINISHED,
         RELEASING,
@@ -64,7 +63,7 @@ public:
 
         bool isPrivate;
 
-        int modified;
+        int anilistModified;
     };
 
     QHash<QString, QVariant> asHash() const;
@@ -74,7 +73,7 @@ public:
     // Attributes
     int id, idMal;
     int episodes;
-    int anilistUpdatedAt;
+    int anilistModified;
 
     QString titleRomaji;
     QString titleEnglish;
@@ -87,6 +86,7 @@ public:
     MediaFormat   format;
 
     QStringList   genres;
+    QStringList   studios;
 
 signals:
 

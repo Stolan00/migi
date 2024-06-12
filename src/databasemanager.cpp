@@ -1,5 +1,4 @@
 #include "databasemanager.h"
-
 // --------------------------------------------------------------------------------------------------------------------------
 DatabaseManager::DatabaseManager(const QString &path) {
     createConnection(path);
@@ -225,6 +224,71 @@ QStringList DatabaseManager::getColumnNames(const QString& tableName) {
     return columnNames;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+void DatabaseManager::executeSqlScript(const QString &filePath)
+{
+    QFile file(filePath);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Unable to open file";
+        return;
+    }
+
+    QSqlQuery query;
+    executeQueriesFromFile(&file, &query);
+    file.close();
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void DatabaseManager::executeQueriesFromFile(QFile *file, QSqlQuery *query)
+{
+    QString currentStatement;
+    bool inTransaction = false;
+
+    while (!file->atEnd()){
+        QByteArray readLine = file->readLine();
+        QString cleanedLine = readLine.trimmed();
+
+        // Remove comments at end of line
+        QStringList strings = cleanedLine.split("--");
+        cleanedLine = strings.at(0).trimmed();
+
+        // Skip lines with only comments or DROP statements
+        if (cleanedLine.startsWith("--") || cleanedLine.startsWith("DROP") || cleanedLine.isEmpty()) {
+            continue;
+        }
+
+        // Handle transaction blocks
+        if (cleanedLine.contains("BEGIN", Qt::CaseInsensitive)) {
+            inTransaction = true;
+        }
+
+        // Accumulate lines into the current statement
+        currentStatement.append(cleanedLine + " ");
+
+        // End of a transaction block
+        if (cleanedLine.contains("END;", Qt::CaseInsensitive)) {
+            inTransaction = false;
+            // Execute the accumulated transaction block
+            if (!query->exec(currentStatement)) {
+                qWarning() << "Failed to execute query:" << query->lastError().text();
+                qWarning() << "Query was:" << currentStatement;
+            }
+            currentStatement.clear();
+        } else if (!inTransaction && cleanedLine.endsWith(';')) {
+            // End of a regular statement
+            currentStatement.chop(1); // Remove the semicolon
+            if (!query->exec(currentStatement)) {
+                qWarning() << "Failed to execute query:" << query->lastError().text();
+                qWarning() << "Query was:" << currentStatement;
+            }
+            currentStatement.clear();
+        }
+    }
+
+    if (!currentStatement.trimmed().isEmpty()) {
+        qWarning() << "The script did not end with a semicolon. The last statement was not executed.";
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::deleteAllTables() {
     QStringList tables = getAllTables();
 
@@ -244,3 +308,4 @@ bool DatabaseManager::deleteAllTables() {
     qDebug() << "ALL TABLES DELETED";
     return true;
 }
+// --------------------------------------------------------------------------------------------------------------------------

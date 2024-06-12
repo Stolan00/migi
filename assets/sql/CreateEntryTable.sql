@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS Entry (
     startedDay INTEGER,
     startedMonth INTEGER,
     startedYear INTEGER,
+    anilistModified INTEGER,
     modified INTEGER,
     FOREIGN KEY (mediaId) REFERENCES Anime(id),
     FOREIGN KEY (status) REFERENCES EntryStatus(id)

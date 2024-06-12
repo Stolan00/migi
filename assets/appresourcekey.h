@@ -21,7 +21,9 @@ enum class AppResourceKey {
     CreateMediaFormatTable,
     CreateGenreTable,
     CreateModifiedTrigger,
-    CreateStatusTable
+    CreateStatusTable,
+    CreateStudioTable,
+    CreateAnimeStudioTable
 };
 
 

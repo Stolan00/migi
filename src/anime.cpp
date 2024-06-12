@@ -28,19 +28,16 @@ Anime::Anime(const QJsonObject jsonValues) {
         myInfo.startedYear  = startedInfo["year"].toInt();
 
         myInfo.progress = jsonValues["progress"].toInt();
-
         myInfo.repeat   = jsonValues["repeat"].toInt();
-
         myInfo.score    = jsonValues["score"].toInt();
 
         myInfo.status = toEntryStatusEnum( jsonValues["status"].toString() );
 
-        myInfo.notes = jsonValues["notes"].toString();
+        myInfo.notes  = jsonValues["notes"].toString();
 
         myInfo.isPrivate = jsonValues["private"].toBool();
 
-        myInfo.modified = jsonValues["updatedAt"].toInt();
-        qDebug() << myInfo.modified;
+        myInfo.anilistModified = jsonValues["updatedAt"].toInt();
 
         animeValues = jsonValues["media"].toObject();
     }
@@ -66,7 +63,7 @@ Anime::Anime(const QJsonObject jsonValues) {
 
     status = toMediaStatusEnum( animeValues["status"].toString() );
 
-    anilistUpdatedAt = animeValues["updatedAt"].toInt();
+    anilistModified = animeValues["updatedAt"].toInt();
 
     format = toMediaFormatEnum( animeValues["format"].toString() );
 
@@ -74,6 +71,17 @@ Anime::Anime(const QJsonObject jsonValues) {
 
     for (const QJsonValue& value : genreArray) {
         genres.append(value.toString());
+    }
+
+    QJsonObject studiosObj = animeValues["studios"].toObject();
+    QJsonArray animeStudios = studiosObj["edges"].toArray();
+
+    for (const QJsonValue& value : animeStudios) {
+        QJsonObject edgeObj = value.toObject();
+        QJsonObject nodeObj = edgeObj["node"].toObject();
+        QString studioName = nodeObj["name"].toString();
+        studios.append(studioName);
+        qDebug() << studioName;
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -87,8 +95,7 @@ QHash<QString, QVariant> Anime::asHash() const {
         { "synopsis",     synopsis     },
         { "imageLink",    imageLink    },
         { "episodes",     episodes     },
-        { "anilistUpdatedAt", anilistUpdatedAt },
-
+        { "anilistModified", anilistModified },
         { "mediaStatus", static_cast<int>(status) },
         { "mediaFormat", static_cast<int>(format) }
     };
@@ -100,20 +107,20 @@ QHash<QString, QVariant> Anime::myInfoAsHash() const {
     QHash<QString, QVariant> myInfoValues {
         { "id", myInfo.id  },
         { "mediaId",    id },
-        { "modified",    myInfo.modified   },
-        { "completedDay",   myInfo.completedDay     },
-        { "completedMonth", myInfo.completedMonth   },
-        { "completedYear",  myInfo.completedYear    },
-        { "startedDay",     myInfo.startedDay       },
-        { "startedMonth",   myInfo.startedMonth     },
-        { "startedYear",    myInfo.startedYear      },
-        { "isPrivate",    myInfo.isPrivate },
-        { "modified",     myInfo.modified  },
+        { "completedDay",    myInfo.completedDay     },
+        { "completedMonth",  myInfo.completedMonth   },
+        { "completedYear",   myInfo.completedYear    },
+        { "startedDay",      myInfo.startedDay       },
+        { "startedMonth",    myInfo.startedMonth     },
+        { "startedYear",     myInfo.startedYear      },
+        { "isPrivate",       myInfo.isPrivate },
+        { "anilistModified", myInfo.anilistModified  },
         { "progress", myInfo.progress },
         { "repeat",   myInfo.repeat   },
         { "score",    myInfo.score    },
         { "notes",    myInfo.notes    },
         { "status", static_cast<int>(myInfo.status) },
+        { "private", myInfo.isPrivate },
     };
 
     return myInfoValues;
@@ -122,11 +129,11 @@ QHash<QString, QVariant> Anime::myInfoAsHash() const {
 //TODO: put in 'Media' ABC as template function?
 // --------------------------------------------------------------------------------------------------------------------------
 Anime::MediaStatus Anime::toMediaStatusEnum(const QString& status) {
-    if (status == "NOT_YET_RELEASED") return MediaStatus::NOT_YET_RELEASED;
     if (status == "FINISHED")  return MediaStatus::FINISHED;
     if (status == "RELEASING") return MediaStatus::RELEASING;
     if (status == "CANCELLED") return MediaStatus::CANCELLED;
     if (status == "HIATUS")    return MediaStatus::HIATUS;
+    if (status == "NOT_YET_RELEASED") return MediaStatus::NOT_YET_RELEASED;
 
     return MediaStatus::FINISHED;
 }

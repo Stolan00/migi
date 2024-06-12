@@ -54,5 +54,6 @@ private:
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
     void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
     QStringList createDBTables();
+    bool executeSQLScripts();
     void openDatabaseConnection();
 };

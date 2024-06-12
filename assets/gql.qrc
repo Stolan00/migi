@@ -16,5 +16,7 @@
         <file alias="CreateMediaFormatTable.sql">sql/CreateMediaFormatTable.sql</file>
         <file alias="CreateGenreTable.sql">sql/CreateGenreTable.sql</file>
         <file alias="CreateModifiedTrigger.sql">sql/CreateModifiedTrigger.sql</file>
+        <file alias="CreateStudioTable.sql">sql/CreateStudioTable.sql</file>
+        <file alias="CreateAnimeStudioTable.sql">sql/CreateAnimeStudioTable.sql</file>
     </qresource>
 </RCC>

@@ -106,7 +106,7 @@ void Anilist::getViewerLists() {
                 //qDebug() << mediaFromEntry;
 
                 Anime animeFromEntry(jsonFromEntry);
-                qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
+                //qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
 
                 animeList.append(animeFromEntry);
             }
@@ -142,7 +142,9 @@ void Anilist::getViewerName() {
 
         if (!m_settings.value(AppSettingsKey::AccountAnilistViewerName).isNull()) {
             qDebug() << "Name Written";
-        } else {
+        }
+
+        else {
             qDebug() << "Failed to write token";
         }
     };
@@ -232,6 +234,7 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     db.deleteAllTables();
 
     createDBTables();
+    executeSQLScripts();
 
     if (!db.createConnection(dbPath)) {
         qDebug() << "Error: Unable to open database.";
@@ -256,53 +259,6 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
             animeGenreList.append(animeGenre);
         }
     }
-
-    if ( !db.bulkInsertIntoTable("Anime", mediaValuesList) ) {
-        qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
-    }
-
-    if ( !db.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
-        qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
-    }
-
-    if ( !db.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
-        qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
-    }
-}
-// --------------------------------------------------------------------------------------------------------------------------
-void Anilist::writeAnimeToDatabase(const Anime& entry) {
-    QStringList tables = createDBTables();
-
-    qDebug() << tables;
-
-    QHash<QString, QVariant> mediaValues = entry.asHash();
-
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    qDebug() << dbPath;
-    DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
-
-    //db.insertIntoTable("Anime", mediaValues);
-}
-// --------------------------------------------------------------------------------------------------------------------------
-QStringList Anilist::createDBTables() {
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db( dbPath );
-
-    db.deleteAllTables();
-    FileWriter files;
-    QStringList tables = files.readFilesFromDirectory(":/assets/sql", "sql");
-
-    for (auto& table : tables) {
-        if(db.createTable(table))
-            qDebug() << "TABLE CREATED";
-    }
-
 
     //TODO: lazy
     QStringList insertQueries = {
@@ -355,14 +311,71 @@ QStringList Anilist::createDBTables() {
         db.executeQuery(insertQuery);
     }
 
+
+    if ( !db.bulkInsertIntoTable("Anime", mediaValuesList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+
+    if ( !db.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
+        qDebug() << "Bulk insert failed.";
+    } else {
+        qDebug() << "Bulk insert succeeded.";
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::writeAnimeToDatabase(const Anime& entry) {
+    QStringList tables = createDBTables();
+
+    qDebug() << tables;
+
+    QHash<QString, QVariant> mediaValues = entry.asHash();
+
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    qDebug() << dbPath;
+    DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
+
+    //db.insertIntoTable("Anime", mediaValues);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QStringList Anilist::createDBTables() {
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db( dbPath );
+
+    db.deleteAllTables();
+    FileWriter files;
+    QStringList tables = files.readFilesFromDirectory(":/assets/sql", "sql");
+
+    tables.removeIf([](const QString &item) {
+        return !item.contains("table", Qt::CaseInsensitive);
+    });
+
+    for (auto& table : tables) {
+        if(db.createTable(table))
+            qDebug() << "TABLE CREATED";
+    }
     return db.getAllTables();
 }
 // --------------------------------------------------------------------------------------------------------------------------
+bool Anilist::executeSQLScripts() {
+    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    DatabaseManager db( dbPath );
+
+    db.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
+}
+// --------------------------------------------------------------------------------------------------------------------------
+//TODO: singleton? member?
 void Anilist::openDatabaseConnection() {
     QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
     DatabaseManager db( dbPath );
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::connectSignals() {
     connect(this, &Anilist::viewerListsReady, this, &Anilist::onViewerListsReady); //TODO: not sure if this should go in the lambda or here (probably here)
