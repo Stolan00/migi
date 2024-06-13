@@ -247,45 +247,46 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     QList<QHash<QString, QVariant>> studioList;
     QList<QHash<QString, QVariant>> animeStudioList;
 
-    for (const Anime& anime : mediaList) {
-        //qDebug() << anime.asHash();
+    QSet<int> studioSet;
+    QSet<QString> animeStudioSet;
 
-        mediaValuesList.append( anime.asHash() );
-        myInfoValuesList.append( anime.myInfoAsHash() );
+    for (const Anime& anime : mediaList) {
+        mediaValuesList.append(anime.asHash());
+        myInfoValuesList.append(anime.myInfoAsHash());
 
         for (const QString& genre : anime.genres) {
             QHash<QString, QVariant> animeGenre {
-                { "genreId", anime.getGenreIndex(genre)},
-                { "animeId", anime.id}
+                { "genreId", anime.getGenreIndex(genre) },
+                { "animeId", anime.id }
             };
             animeGenreList.append(animeGenre);
         }
 
-        for (const QString& studioName : anime.studios.keys()) {
-            QHash<QString, QVariant> studio {
-                { "studioId", anime.studios[studioName] },
-                { "studioName", studioName }
-            };
+        for (const Anime::Studio& studio : anime.studios) {
+            int studioKey = studio.studioId;
+            QString animeStudioKey = QString("%1-%2").arg(anime.id).arg(studio.studioId);
 
-            // Check if studioList already contains the studio based on studioName
-            bool studioExists = false;
-            for (const QHash<QString, QVariant>& existingStudio : studioList) {
-                if (existingStudio["studioName"] == studioName) {
-                    studioExists = true;
-                    break;
-                }
+            if (!studioSet.contains(studioKey)) {
+                QHash<QString, QVariant> studioHash {
+                    { "studioId", studio.studioId },
+                    { "studioName", studio.studioName },
+                    { "isMain", studio.isMain }
+                };
+                studioList.append(studioHash);
+                studioSet.insert(studioKey);
             }
 
-            if (!studioExists) {
-                studioList.append(studio);
+            if (!animeStudioSet.contains(animeStudioKey)) {
+                QHash<QString, QVariant> animeStudio {
+                    { "studioId", studio.studioId },
+                    { "animeId", anime.id },
+                    { "isMain", studio.isMain }
+                };
+                animeStudioList.append(animeStudio);
+                animeStudioSet.insert(animeStudioKey);
+            } else {
+                qDebug() << "DUPLICATE FOUND" << animeStudioKey;
             }
-
-            QHash<QString, QVariant> animeStudio {
-                { "studioId", anime.studios[studioName] },
-                { "animeId", anime.id }
-            };
-
-            animeStudioList.append(animeStudio);
         }
     }
 
@@ -452,5 +453,7 @@ void Anilist::initializeAccountInfo() {
     //     else qDebug() << "Failed to write token";
 
     // } else qDebug() << "Id already exists";
+
+    getViewerName();
 }
 // --------------------------------------------------------------------------------------------------------------------------

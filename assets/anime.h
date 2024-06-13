@@ -66,6 +66,18 @@ public:
         int anilistModified;
     };
 
+    struct Studio {
+        int studioId;
+        QString studioName;
+        bool isMain;
+
+        Studio(int newId, QString newName, bool newIsMain) {
+            studioId = newId;
+            studioName = newName;
+            isMain = newIsMain;
+        }
+    };
+
     QHash<QString, QVariant> asHash() const;
     QHash<QString, QVariant> myInfoAsHash() const;
     int getGenreIndex(const QString& genre) const;
@@ -86,7 +98,7 @@ public:
     MediaFormat   format;
 
     QStringList   genres;
-    QHash<QString, QVariant> studios;
+    QList<Studio> studios;
 
 signals:
 

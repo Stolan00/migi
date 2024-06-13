@@ -133,7 +133,7 @@ bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<
 
     insertQuery += valuesPlaceholderGroups.join(", ");
 
-    qDebug() << "Bulk Insert Query: " << insertQuery;
+    //qDebug() << "Bulk Insert Query: " << insertQuery;
     if (!query.prepare(insertQuery)) {
         qDebug() << "Error: Failed to prepare bulk insert query." << query.lastError();
         return false;
@@ -162,7 +162,7 @@ bool DatabaseManager::bulkInsertIntoTable(const QString& tableName, const QList<
         return false;
     }
 
-    qDebug() << "Bulk insert successful.";
+    qDebug() << "Bulk insert successful: " << tableName;
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------

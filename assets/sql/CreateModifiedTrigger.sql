@@ -95,3 +95,31 @@ AFTER UPDATE ON MediaStatus
 BEGIN
     UPDATE MediaStatus SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
 END;
+
+-- Trigger for Studio table (AFTER INSERT)
+CREATE TRIGGER IF NOT EXISTS before_insert_Studio_Modified
+AFTER INSERT ON Studio
+BEGIN
+    UPDATE Studio SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for Studio table (after update)
+CREATE TRIGGER IF NOT EXISTS after_update_Studio_Modified
+AFTER UPDATE ON Studio
+BEGIN
+    UPDATE Studio SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for AnimeStudio table (AFTER INSERT)
+CREATE TRIGGER IF NOT EXISTS before_insert_AnimeStudio_Modified
+AFTER INSERT ON AnimeStudio
+BEGIN
+    UPDATE AnimeStudio SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for AnimeStudio table (after update)
+CREATE TRIGGER IF NOT EXISTS after_update_AnimeStudio_Modified
+AFTER UPDATE ON AnimeStudio
+BEGIN
+    UPDATE AnimeStudio SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;

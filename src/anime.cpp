@@ -11,7 +11,6 @@ Anime::Anime(const QJsonObject jsonValues) {
 
     QJsonObject animeValues;
 
-    qDebug() << isEntry;
     if (isEntry) {
         myInfo.id = jsonValues["id"].toInt();
 
@@ -78,11 +77,16 @@ Anime::Anime(const QJsonObject jsonValues) {
 
     for (const QJsonValue& value : animeStudios) {
         QJsonObject edgeObj = value.toObject();
+        bool studioIsMain = edgeObj["isMain"].toBool();
         QJsonObject nodeObj = edgeObj["node"].toObject();
         QString studioName = nodeObj["name"].toString();
         int studioId = nodeObj["id"].toInt();
-        studios.insert(studioName, studioId);
-        qDebug() << studios[studioName];
+
+        Studio newStudio(studioId, studioName, studioIsMain);
+
+        //qDebug() << titleEnglish << " " << " " << titleRomaji << " " << newStudio.studioId << " " << newStudio.studioName << " " << newStudio.isMain;
+
+        studios.append(newStudio);
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
