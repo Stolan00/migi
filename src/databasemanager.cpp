@@ -1,11 +1,29 @@
 #include "databasemanager.h"
+#include "appsettingskey.h"
+// --------------------------------------------------------------------------------------------------------------------------
+DatabaseManager& DatabaseManager::instance() {
+    static QMutex mutex; // Ensure mutex is static to be shared across calls
+    QMutexLocker locker(&mutex);
+
+    static QString path = toString(AppSettingsKey::DatabasePath);
+
+    static DatabaseManager instance(path);
+
+    return instance;
+}
+
 // --------------------------------------------------------------------------------------------------------------------------
 DatabaseManager::DatabaseManager(const QString &path) {
-    createConnection(path);
+    if (!createConnection(path)) {
+        qDebug() << "Error: Failed to create database connection.";
+    }
 }
+
 // --------------------------------------------------------------------------------------------------------------------------
 DatabaseManager::~DatabaseManager() {
-    m_database.close();
+    if (m_database.isOpen()) {
+        m_database.close();
+    }
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::executeQuery(const QString& queryStr) {
@@ -23,16 +41,27 @@ bool DatabaseManager::executeQuery(const QString& queryStr) {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::createConnection(const QString& path) {
-    m_database = QSqlDatabase::addDatabase("QSQLITE");
-    m_database.setDatabaseName(path);
+    // Ensure the settings value is correctly set
+    m_settings.setValue(AppSettingsKey::DatabasePath, "database.sqlite");
+
+    // Check if the database already has a connection
+    if (QSqlDatabase::contains(QSqlDatabase::defaultConnection)) {
+        m_database = QSqlDatabase::database();
+    } else {
+        m_database = QSqlDatabase::addDatabase("QSQLITE");
+
+        QString dbName = m_settings.value(AppSettingsKey::DatabasePath).toString();
+        m_database.setDatabaseName(dbName);
+    }
 
     if (!m_database.open()) {
-        qDebug() << "Error: Unable to open database.";
+        qDebug() << "Error: Unable to open database at path" << path << "-" << m_database.lastError();
         return false;
     }
 
     return true;
 }
+
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::printAllValuesFromTable(const QString& tableName) {
     if (!m_database.isOpen()) {

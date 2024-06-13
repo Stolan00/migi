@@ -2,6 +2,7 @@
 
 #include "qqmlintegration.h"
 #include "networkmanager.h"
+#include "databasemanager.h"
 #include <QObject>
 #include "resources.h"
 #include "settings.h"
@@ -16,14 +17,6 @@ class Anilist : public QObject
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
-
-    NetworkManager& m_netRequest = NetworkManager::instance();
-
-    QUrl m_anilistUrl = QUrl("https://graphql.anilist.co");
-    QUrl m_aniListAuthUrl = QUrl("https://anilist.co/api/v2/oauth/authorize");
-
-    Settings& m_settings = Settings::instance();
-    Resources m_resources;
 
 public:
     explicit Anilist(QObject *parent = nullptr);
@@ -46,6 +39,7 @@ public slots:
     //bool insertAnime();
 
 private:
+    // Methods
     void connectSignals();
     void initializeAccountInfo();
 
@@ -56,4 +50,14 @@ private:
     QStringList createDBTables();
     bool executeSQLScripts();
     void openDatabaseConnection();
+
+    // Attributes
+    NetworkManager& m_netRequest = NetworkManager::instance();
+    DatabaseManager& m_dbManager = DatabaseManager::instance();
+
+    QUrl m_anilistUrl = QUrl("https://graphql.anilist.co");
+    QUrl m_aniListAuthUrl = QUrl("https://anilist.co/api/v2/oauth/authorize");
+
+    Settings& m_settings = Settings::instance();
+    Resources m_resources;
 };

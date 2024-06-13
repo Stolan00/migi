@@ -1,5 +1,4 @@
-#include "assets/anilist.h"
-#include "databasemanager.h"
+#include "anilist.h"
 #include "filewriter.h"
 #include <QResource>
 
@@ -8,7 +7,6 @@
 Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
-    m_settings.setValue(AppSettingsKey::DatabasePath, "database.sqlite"); //why is this here
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -228,18 +226,10 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
 void Anilist::populateDatabase(const QList<Anime>& mediaList) {
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db(dbPath);
-
-    db.deleteAllTables();
+    m_dbManager.deleteAllTables();
 
     createDBTables();
     executeSQLScripts();
-
-    if (!db.createConnection(dbPath)) {
-        qDebug() << "Error: Unable to open database.";
-        return;
-    }
 
     QList<QHash<QString, QVariant>> mediaValuesList;
     QList<QHash<QString, QVariant>> myInfoValuesList;
@@ -338,38 +328,27 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     };
 
     for (const QString& insertQuery : insertQueries) {
-        db.executeQuery(insertQuery);
+        m_dbManager.executeQuery(insertQuery);
     }
 
-
-    if ( !db.bulkInsertIntoTable("Anime", mediaValuesList) ) {
+    if ( !m_dbManager.bulkInsertIntoTable("Anime", mediaValuesList) ) {
         qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
     }
 
-    if ( !db.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
+    if ( !m_dbManager.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
         qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
     }
 
-    if ( !db.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
+    if ( !m_dbManager.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
         qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
     }
 
-    if ( !db.bulkInsertIntoTable("Studio", studioList) ) {
+    if ( !m_dbManager.bulkInsertIntoTable("Studio", studioList) ) {
         qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
     }
 
-    if ( !db.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
+    if ( !m_dbManager.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
         qDebug() << "Bulk insert failed.";
-    } else {
-        qDebug() << "Bulk insert succeeded.";
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -380,43 +359,30 @@ void Anilist::writeAnimeToDatabase(const Anime& entry) {
 
     QHash<QString, QVariant> mediaValues = entry.asHash();
 
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    qDebug() << dbPath;
-    DatabaseManager db( dbPath ); //TODO: awkward because it creates a duplicate connection as the call to createDBTables()
-
     //db.insertIntoTable("Anime", mediaValues);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QStringList Anilist::createDBTables() {
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db( dbPath );
 
-    db.deleteAllTables();
+    m_dbManager.deleteAllTables();
     FileWriter files;
-    QStringList tables = files.readFilesFromDirectory(":/assets/sql", "sql");
-
-    tables.removeIf([](const QString &item) {
-        return !item.contains("table", Qt::CaseInsensitive);
-    });
+    QStringList tables = files.readFilesFromDirectory(":/assets/sql/tables", "sql");
 
     for (auto& table : tables) {
-        if(db.createTable(table))
+        if(m_dbManager.createTable(table))
             qDebug() << "TABLE CREATED";
     }
-    return db.getAllTables();
+    return m_dbManager.getAllTables();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::executeSQLScripts() {
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db( dbPath );
-
-    db.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
+    m_dbManager.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
 }
 // --------------------------------------------------------------------------------------------------------------------------
 //TODO: singleton? member?
 void Anilist::openDatabaseConnection() {
-    QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
-    DatabaseManager db( dbPath );
+    // QString dbPath = m_settings.value(AppSettingsKey::DatabasePath).toString();
+    // DatabaseManager db( dbPath );
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::connectSignals() {

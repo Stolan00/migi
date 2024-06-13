@@ -5,7 +5,8 @@
 #include <QDebug>
 #include <QSqlRecord>
 #include "filewriter.h"
-
+#include "qmutex.h"
+#include "settings.h"
 #include <QObject>
 
 class DatabaseManager : public QObject
@@ -14,7 +15,7 @@ class DatabaseManager : public QObject
     QSqlDatabase m_database;
 
 public:
-    DatabaseManager(const QString& path);
+    static DatabaseManager& instance();
     bool executeQuery(const QString& queryStr);
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
@@ -30,7 +31,12 @@ public:
     void executeQueriesFromFile(QFile *file, QSqlQuery *query);
 
     bool deleteAllTables(); // TODO: probably shouldnt be public, leaving for development
-    ~DatabaseManager();
-
 signals:
+
+private:
+    DatabaseManager(const QString& path);
+    ~DatabaseManager();
+    Settings& m_settings = Settings::instance();
+
+    static QMutex mutex;
 };
