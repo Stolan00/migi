@@ -7,6 +7,7 @@
         <file alias="MediaListFields.gql">gql/MediaListFields.gql</file>
         <file alias="ViewerName.gql">gql/ViewerName.gql</file>
     </qresource>
+
     <qresource prefix="/assets/sql/tables">
         <file alias="CreateAnimeTable.sql">sql/tables/CreateAnimeTable.sql</file>
         <file alias="CreateAnimeGenreTable.sql">sql/tables/CreateAnimeGenreTable.sql</file>
@@ -18,7 +19,13 @@
         <file alias="CreateStudioTable.sql">sql/tables/CreateStudioTable.sql</file>
         <file alias="CreateAnimeStudioTable.sql">sql/tables/CreateAnimeStudioTable.sql</file>
     </qresource>
+
     <qresource prefix="/assets/sql/triggers">
         <file alias="CreateModifiedTrigger.sql">sql/triggers/CreateModifiedTrigger.sql</file>
+    </qresource>
+
+    <qresource prefix="/assets/sql/queries">
+        <file alias="PopulateTables.sql">sql/queries/PopulateTables.sql</file>
+        <file alias="FindUpdatedEntries.sql">sql/queries/FindUpdatedEntries.sql</file>
     </qresource>
 </RCC>

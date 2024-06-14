@@ -22,7 +22,6 @@ public:
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
     void writeAnimeToDatabase(const Anime &entry); //TODO: should be media eventually?
-    void populateDatabase(const QList<Anime> &mediaList);
 
 signals:
     void requestFinished(const QJsonObject& data);
@@ -34,8 +33,10 @@ public slots:
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
+    void populateDatabase();
 
-    bool onViewerListsReady(const QList<Anime>& mediaList);
+    bool onPopulateDatabaseReady(const QList<Anime>& mediaList);
+    void updateDatabase();
     //bool insertAnime();
 
 private:
@@ -43,10 +44,15 @@ private:
     void connectSignals();
     void initializeAccountInfo();
 
+
     NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables = QJsonObject(), std::function<void(const QJsonObject&)> callback = [](const QJsonObject&){});
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
     void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
+
+    void addListsToDB(const QList<Anime> &mediaList);
+    void processViewerLists(const QJsonObject &data);
+
     QStringList createDBTables();
     bool executeSQLScripts();
     void openDatabaseConnection();

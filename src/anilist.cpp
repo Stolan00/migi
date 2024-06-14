@@ -47,6 +47,59 @@ void Anilist::configureOAuth2() {
     m_netRequest.configureOAuth2(clientID, authUrl, accessUrl);
 }
 // --------------------------------------------------------------------------------------------------------------------------
+void Anilist::populateDatabase() {
+    connect(this, &Anilist::viewerListsReady, this, &::Anilist::onPopulateDatabaseReady);
+
+    getViewerLists();
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::getViewerLists() {
+    Resources resources;
+    QString queryText = resources.readResource(AppResourceKey::ALQueryMLCollection).toString();
+
+    QString viewerName = m_settings.value(AppSettingsKey::AccountAnilistViewerName).toString();
+
+    QJsonObject variables {
+        {"userName", viewerName}
+    };
+
+    bool isAuthRequest = true;
+
+    sendAnilistRequest(queryText, isAuthRequest, variables, [this](const QJsonObject& data) {
+        this->processViewerLists(data);
+    });
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::processViewerLists(const QJsonObject& data) {
+    QList<Anime> animeList;
+
+    QJsonObject mlc = data["MediaListCollection"].toObject();
+    QJsonArray lists = mlc["lists"].toArray();
+
+    for (const QJsonValue& listValue : lists) {
+        if (!listValue.isObject()) continue;
+
+        QJsonObject listObject = listValue.toObject();
+        if (!listObject.contains("entries") || !listObject["entries"].isArray()) continue;
+
+        QJsonArray entries = listObject["entries"].toArray();
+        for (const QJsonValue& entryValue : entries) {
+            QJsonObject jsonFromEntry = entryValue.toObject();
+            // QJsonObject mediaFromEntry = jsonFromEntry["media"].toObject();
+
+            //qDebug() << mediaFromEntry;
+
+            Anime animeFromEntry(jsonFromEntry);
+            //qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
+
+            animeList.append(animeFromEntry);
+        }
+    }
+    // Emit the signal with the populated list
+    qDebug() << "VIEWER LIST READY";
+    emit viewerListsReady(animeList);
+}
+// --------------------------------------------------------------------------------------------------------------------------
 void Anilist::getViewerId() {
     Resources resources;
     QString queryText = resources.readResource(AppResourceKey::ALQueryViewerId).toString();
@@ -71,56 +124,12 @@ void Anilist::getViewerId() {
     sendAnilistRequest(queryText, isAuthRequest, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::getViewerLists() {
-    Resources resources;
-    QString queryText = resources.readResource(AppResourceKey::ALQueryMLCollection).toString();
+bool Anilist::onPopulateDatabaseReady(const QList<Anime> &mediaList) {
 
-    QString viewerName = m_settings.value(AppSettingsKey::AccountAnilistViewerName).toString();
+    qDebug() << "TEST";
+    addListsToDB(mediaList);
 
-    QJsonObject variables {
-        {"userName", viewerName}
-    };
-
-    bool isAuthRequest = true;
-
-    // Define the callback function for processing the data
-    auto callback = [this](const QJsonObject& data) {
-        QList<Anime> animeList;
-
-        QJsonObject mlc = data["MediaListCollection"].toObject();
-        QJsonArray lists = mlc["lists"].toArray();
-
-        for (const QJsonValue& listValue : lists) {
-            if (!listValue.isObject()) continue;
-
-            QJsonObject listObject = listValue.toObject();
-            if (!listObject.contains("entries") || !listObject["entries"].isArray()) continue;
-
-            QJsonArray entries = listObject["entries"].toArray();
-            for (const QJsonValue& entryValue : entries) {
-                QJsonObject jsonFromEntry = entryValue.toObject();
-                // QJsonObject mediaFromEntry = jsonFromEntry["media"].toObject();
-
-                //qDebug() << mediaFromEntry;
-
-                Anime animeFromEntry(jsonFromEntry);
-                //qDebug() << animeFromEntry.id << " TITLE: " << animeFromEntry.titleEnglish << " " << animeFromEntry.titleRomaji;
-
-                animeList.append(animeFromEntry);
-            }
-        }
-        // Emit the signal with the populated list
-        qDebug() << "VIEWER LIST READY";
-        emit viewerListsReady(animeList); //TODO: awkward because it emits a signal in a callback when the entire thing could just be a slot
-    };
-
-    sendAnilistRequest(queryText, isAuthRequest, variables, callback);
-}
-// --------------------------------------------------------------------------------------------------------------------------
-bool Anilist::onViewerListsReady(const QList<Anime> &mediaList) {
-
-    populateDatabase(mediaList);
-
+    disconnect(this, &Anilist::viewerListsReady, this, &Anilist::viewerListsReady);
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -225,7 +234,7 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
 // --------------------------------------------------------------------------------------------------------------------------
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
-void Anilist::populateDatabase(const QList<Anime>& mediaList) {
+void Anilist::addListsToDB(const QList<Anime>& mediaList) {
     m_dbManager.deleteAllTables();
 
     createDBTables();
@@ -280,56 +289,8 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
         }
     }
 
-    //TODO: lazy
-    QStringList insertQueries = {
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (0, 'CURRENT', 0);",
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (1, 'PLANNING', 0);",
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (2, 'COMPLETED', 0);",
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (3, 'DROPPED', 0);",
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (4, 'PAUSED', 0);",
-        "INSERT INTO EntryStatus (statusId, statusName, modified) VALUES (5, 'REPEATING', 0);",
 
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (0, 'FINISHED', 0);",
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (1, 'RELEASING', 0);",
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (2, 'NOT_YET_RELEASED', 0);",
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (3, 'CANCELLED', 0);",
-        "INSERT INTO MediaStatus (statusId, statusName, modified) VALUES (4, 'HIATUS', 0);",
-
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (0, 'TV', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (1, 'TV_SHORT', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (2, 'MOVIE', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (3, 'SPECIAL', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (4, 'OVA', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (5, 'ONA', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (6, 'MUSIC', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (7, 'MANGA', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (8, 'NOVEL', 0);",
-        "INSERT INTO MediaFormat (formatId, formatName, modified) VALUES (9, 'ONE_SHOT', 0);",
-
-        "INSERT INTO Genre (genreId, genreName, modified) VALUES (0, 'Action', 0);",
-        "INSERT INTO Genre (genreName) VALUES ('Adventure');",
-        "INSERT INTO Genre (genreName) VALUES ('Comedy');",
-        "INSERT INTO Genre (genreName) VALUES ('Drama');",
-        "INSERT INTO Genre (genreName) VALUES ('Ecchi');",
-        "INSERT INTO Genre (genreName) VALUES ('Fantasy');",
-        "INSERT INTO Genre (genreName) VALUES ('Hentai');",
-        "INSERT INTO Genre (genreName) VALUES ('Horror');",
-        "INSERT INTO Genre (genreName) VALUES ('Mahou Shoujo');",
-        "INSERT INTO Genre (genreName) VALUES ('Mecha');",
-        "INSERT INTO Genre (genreName) VALUES ('Music');",
-        "INSERT INTO Genre (genreName) VALUES ('Mystery');",
-        "INSERT INTO Genre (genreName) VALUES ('Psychological');",
-        "INSERT INTO Genre (genreName) VALUES ('Romance');",
-        "INSERT INTO Genre (genreName) VALUES ('Sci-Fi');",
-        "INSERT INTO Genre (genreName) VALUES ('Slice of Life');",
-        "INSERT INTO Genre (genreName) VALUES ('Sports');",
-        "INSERT INTO Genre (genreName) VALUES ('Supernatural');",
-        "INSERT INTO Genre (genreName) VALUES ('Thriller');",
-    };
-
-    for (const QString& insertQuery : insertQueries) {
-        m_dbManager.executeQuery(insertQuery);
-    }
+    m_dbManager.executeSqlScript(toString(AppResourceKey::SQLPopulateTables));
 
     if ( !m_dbManager.bulkInsertIntoTable("Anime", mediaValuesList) ) {
         qDebug() << "Bulk insert failed.";
@@ -350,6 +311,19 @@ void Anilist::populateDatabase(const QList<Anime>& mediaList) {
     if ( !m_dbManager.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
         qDebug() << "Bulk insert failed.";
     }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::updateDatabase() {
+    QString findUpdatesString = m_resources.readResource(AppResourceKey::FindUpdatedEntries).toString();
+
+    QVariantList updatedEntries = m_dbManager.executeQuery(findUpdatesString);
+
+    if (updatedEntries.isEmpty()) {
+        return;
+    }
+
+
+
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
@@ -386,7 +360,7 @@ void Anilist::openDatabaseConnection() {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::connectSignals() {
-    connect(this, &Anilist::viewerListsReady, this, &Anilist::onViewerListsReady); //TODO: not sure if this should go in the lambda or here (probably here)
+    //connect(this, &Anilist::viewerListsReady, this, &Anilist::onViewerListsReady); //TODO: not sure if this should go in the lambda or here (probably here)
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::initializeAccountInfo() {

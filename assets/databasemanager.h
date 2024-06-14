@@ -16,7 +16,7 @@ class DatabaseManager : public QObject
 
 public:
     static DatabaseManager& instance();
-    bool executeQuery(const QString& queryStr);
+    QVariantList executeQuery(const QString& queryStr);
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);

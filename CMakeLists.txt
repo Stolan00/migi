@@ -22,6 +22,8 @@ qt_add_qml_module(appanilist_project
     VERSION 1.0
     QML_FILES
         Main.qml
+        src/QML/Sidebar.qml
+        src/QML/IconButton.qml
     SOURCES
         src/anime.cpp
         src/networkmanager.cpp

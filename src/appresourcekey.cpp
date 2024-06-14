@@ -21,11 +21,13 @@ QString toString(AppResourceKey key) {
         { AppResourceKey::CreateStatusTable,       ":/assets/sql/tables/CreateStatusTable.sql"       },
         { AppResourceKey::CreateStudioTable,       ":/assets/sql/tables/CreateStudioTable.sql"       },
         { AppResourceKey::CreateAnimeStudioTable,  ":/assets/sql/tables/CreateAnimeStudioTable.sql"  },
+        { AppResourceKey::SQLPopulateTables,       ":assets/sql/queries/PopulateTables.sql"          },
 
         //SQL Triggers
-        { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/triggers/CreateModifiedTrigger.sql" }
+        { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/triggers/CreateModifiedTrigger.sql" },
 
         //SQL Queries
+        { AppResourceKey::FindUpdatedEntries, ":/assets/sql/queries/FindUpdatedEntries.sql" }
     };
 
     return keyToString.value(key, "");

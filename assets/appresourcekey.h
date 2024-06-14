@@ -20,10 +20,16 @@ enum class AppResourceKey {
     CreateEntryTable,
     CreateMediaFormatTable,
     CreateGenreTable,
-    CreateModifiedTrigger,
     CreateStatusTable,
     CreateStudioTable,
-    CreateAnimeStudioTable
+    CreateAnimeStudioTable,
+
+    SQLPopulateTables,
+
+    FindUpdatedEntries,
+
+    // SQL Triggers
+    CreateModifiedTrigger,
 };
 
 

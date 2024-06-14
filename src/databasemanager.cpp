@@ -26,18 +26,30 @@ DatabaseManager::~DatabaseManager() {
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
-bool DatabaseManager::executeQuery(const QString& queryStr) {
+QVariantList DatabaseManager::executeQuery(const QString& queryStr) {
+    QVariantList results;
+
     if (!m_database.isOpen()) {
         qDebug() << "Error: Database is not open.";
-        return false;
+        return results; // Return an empty list
     }
 
     QSqlQuery query(m_database);
     if (!query.exec(queryStr)) {
         qDebug() << "Error: Failed to execute query -" << query.lastError();
-        return false;
+        return results; // Return an empty list
     }
-    return true;
+
+    while (query.next()) {
+        QVariantMap row;
+        QSqlRecord record = query.record();
+        for (int i = 0; i < record.count(); ++i) {
+            row.insert(record.fieldName(i), query.value(i));
+        }
+        results.append(row);
+    }
+
+    return results;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::createConnection(const QString& path) {
