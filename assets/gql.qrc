@@ -26,6 +26,8 @@
 
     <qresource prefix="/assets/sql/queries">
         <file alias="PopulateTables.sql">sql/queries/PopulateTables.sql</file>
-        <file alias="FindUpdatedEntries.sql">sql/queries/FindUpdatedEntries.sql</file>
+        <file alias="GetEntryRows.sql">sql/queries/GetEntryRows.sql</file>
+        <file alias="GetAnimeRows.sql">sql/queries/GetAnimeRows.sql</file>
+        <file alias="GetAnimeAndEntryData.sql">sql/queries/GetAnimeAndEntryData.sql</file>
     </qresource>
 </RCC>

@@ -10,7 +10,6 @@ class Anime
 public:
     Anime();
     Anime(const QJsonObject jsonValues);
-
         //TODO: put in 'Media' ABC? (if going to allow manga)
     enum class MediaStatus {
         FINISHED,

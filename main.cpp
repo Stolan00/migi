@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
     FileWriter fw;
     engine.rootContext()->setContextProperty("fileWriter", &fw);
 
+    qmlRegisterType<Anime>("App.Anime", 1, 0, "Anime");
+
     const QUrl url(QStringLiteral("qrc:/anilist_project/Main.qml"));\
 
     QObject::connect(

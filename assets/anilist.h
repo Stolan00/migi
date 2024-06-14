@@ -36,6 +36,10 @@ public slots:
     void populateDatabase();
 
     bool onPopulateDatabaseReady(const QList<Anime>& mediaList);
+    bool onUpdateDatabaseReady(const QList<Anime>& mediaList);
+    QVariantList readEntriesFromDB();
+    QVariantList readAnimeWithEntriesFromDB();
+
     void updateDatabase();
     //bool insertAnime();
 
@@ -50,8 +54,12 @@ private:
     void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
     void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
 
-    void addListsToDB(const QList<Anime> &mediaList);
+    QVariantList convertToVariantList(const QList<Anime> &mediaList);
+
+    void addListsToDB(const QList<Anime>& mediaList);
     void processViewerLists(const QJsonObject &data);
+
+    void compareEntries(const QList<Anime>& mediaList);
 
     QStringList createDBTables();
     bool executeSQLScripts();

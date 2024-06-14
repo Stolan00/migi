@@ -26,7 +26,9 @@ enum class AppResourceKey {
 
     SQLPopulateTables,
 
-    FindUpdatedEntries,
+    GetEntryRows,
+    GetAnimeRows,
+    GetAnimeAndEntryData,
 
     // SQL Triggers
     CreateModifiedTrigger,

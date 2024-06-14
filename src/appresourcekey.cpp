@@ -26,8 +26,11 @@ QString toString(AppResourceKey key) {
         //SQL Triggers
         { AppResourceKey::CreateModifiedTrigger,   ":/assets/sql/triggers/CreateModifiedTrigger.sql" },
 
+
         //SQL Queries
-        { AppResourceKey::FindUpdatedEntries, ":/assets/sql/queries/FindUpdatedEntries.sql" }
+        { AppResourceKey::GetEntryRows,         ":/assets/sql/queries/GetEntryRows.sql"  },
+        { AppResourceKey::GetAnimeRows,         ":/assets/sql/queries/GetAnimeRows.sql" },
+        { AppResourceKey::GetAnimeAndEntryData, ":/assets/sql/queries/GetAnimeAndEntryData.sql" }
     };
 
     return keyToString.value(key, "");

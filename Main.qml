@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 import AppSettings 1.0
 import "./src/QML"
 
@@ -9,61 +10,41 @@ Window {
     visible: true
     title: qsTr("Migi")
 
-    // Sidebar Component
-    Sidebar {
-        id: sidebar
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        width: 200
-    }
+    RowLayout {
+        anchors.fill: parent
 
-    Item {
-        anchors.left: sidebar.right
-        anchors.leftMargin: 10
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-
-        Image {
-            id: anime_pic
-            anchors.top: parent.top
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-
-        Flickable {
-            width: parent.width - 220
-            height: 300
-            anchors.top: anime_pic.bottom
-            anchors.topMargin: 5
-            anchors.left: parent.left
-            anchors.leftMargin: 10
-
-            Text {
-                id: responseArea
-                wrapMode: Text.WordWrap
-                width: parent.width
-                height: parent.height
+        Sidebar {
+            id: sidebar
+            width: 200
+            Layout.fillHeight: true
+            onSelectedIndexChanged: {
+                animeList.visible = selectedIndex == 1
+                readButton.visible = selectedIndex == 1
             }
         }
 
-        Button {
-            text: "Send GraphQL Request"
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: responseArea.bottom
-            anchors.topMargin: 5
-            onClicked: {
-                anilist.populateDatabase()
-            }
-        }
-    }
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
 
-    Connections {
-        target: anilist
-        function onResponseReceived(response) {
-            console.log(response.data.media)
-            responseArea.text = response.data.Media.description
-            anime_pic.source = response.data.Media.coverImage.large
+            AnimeList {
+                id: animeList
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                anchors.margins: 5
+                visible: sidebar.selectedIndex == 1
+            }
+
+            Button {
+                id: readButton
+                text: "Read From Database"
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
+                visible: sidebar.selectedIndex == 1
+                onClicked: {
+                    var entries = anilist.readAnimeWithEntriesFromDB();
+                    animeList.updateList(entries);
+                }
+            }
         }
     }
 }
