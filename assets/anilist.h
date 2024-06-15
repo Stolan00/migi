@@ -38,7 +38,7 @@ public slots:
     bool onPopulateDatabaseReady(const QList<Anime>& mediaList);
     bool onUpdateDatabaseReady(const QList<Anime>& mediaList);
     QVariantList readEntriesFromDB();
-    QVariantList readAnimeWithEntriesFromDB();
+    QVariantList readAnimeWithEntriesFromDB(Anime::EntryStatus status = Anime::EntryStatus::INVALID);
 
     void updateDatabase();
     //bool insertAnime();

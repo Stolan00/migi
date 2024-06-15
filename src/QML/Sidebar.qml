@@ -1,11 +1,12 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import "."
+
 Item {
     width: 200
     height: parent.height
 
-    property int selectedIndex: -1
+    property int selectedIndex: 1
 
     Column {
         anchors.fill: parent
@@ -24,7 +25,9 @@ Item {
             text: "Library"
             index: 1
             selected: index == selectedIndex
-            onClicked: selectedIndex = index
+            onClicked: {
+                selectedIndex = index
+            }
         }
 
         IconButton {

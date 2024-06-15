@@ -25,7 +25,8 @@ public:
         COMPLETED,
         DROPPED,
         PAUSED,
-        REPEATING
+        REPEATING,
+        INVALID
     };
 
     enum class MediaFormat { //TODO: probably doesnt belong here

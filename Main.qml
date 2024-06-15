@@ -5,9 +5,10 @@ import AppSettings 1.0
 import "./src/QML"
 
 Window {
-    width: 800
+    width: 1200
     height: 480
     visible: true
+    color: "lightslategray"
     title: qsTr("Migi")
 
     RowLayout {
@@ -18,31 +19,31 @@ Window {
             width: 200
             Layout.fillHeight: true
             onSelectedIndexChanged: {
-                animeList.visible = selectedIndex == 1
-                readButton.visible = selectedIndex == 1
+                mainWindow.toggle()
             }
         }
 
         ColumnLayout {
+            id: mainWindow
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            AnimeList {
-                id: animeList
+            AnimeLibrary {
+                id: library
+                property int index: 1
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 anchors.margins: 5
-                visible: sidebar.selectedIndex == 1
+                function toggle() {
+                    visible = sidebar.selectedIndex === index
+                    enabled = sidebar.selectedIndex === index
+                }
             }
 
-            Button {
-                id: readButton
-                text: "Read From Database"
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-                visible: sidebar.selectedIndex == 1
-                onClicked: {
-                    var entries = anilist.readAnimeWithEntriesFromDB();
-                    animeList.updateList(entries);
+            function toggle() {
+                for (var i = 0; i < mainWindow.children.length; i++) {
+                    var child = mainWindow.children[i];
+                    if (child.toggle) child.toggle()
                 }
             }
         }

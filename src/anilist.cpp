@@ -146,8 +146,14 @@ QVariantList Anilist::readEntriesFromDB() {
     return rows;
 }
 // --------------------------------------------------------------------------------------------------------------------------
-QVariantList Anilist::readAnimeWithEntriesFromDB() {
+QVariantList Anilist::readAnimeWithEntriesFromDB(Anime::EntryStatus status) {
     QString getAnimeAndEntryDataQuery = m_resources.readResource(AppResourceKey::GetAnimeAndEntryData).toString();
+
+    if (status != Anime::EntryStatus::INVALID) {
+        qDebug() << "test";
+        getAnimeAndEntryDataQuery.replace("-- ", "");
+        getAnimeAndEntryDataQuery.replace("{status}", QString::number(static_cast<int>(status)));
+    }
 
     QVariantList rows = m_dbManager.executeQuery(getAnimeAndEntryDataQuery);
 

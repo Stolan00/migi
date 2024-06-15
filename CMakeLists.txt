@@ -50,6 +50,8 @@ qt_add_qml_module(appanilist_project
     RESOURCES
         assets/gql.qrc
         QML_FILES src/QML/AnimeList.qml
+        QML_FILES src/QML/AnimeLibrary.qml
+        QML_FILES
 )
 
 # Add the assets and src directories to the include directories
