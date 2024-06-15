@@ -91,6 +91,7 @@ public:
     QString titleRomaji;
     QString titleEnglish;
     QString titleNative;
+
     QString synopsis;
     QString imageLink;
 

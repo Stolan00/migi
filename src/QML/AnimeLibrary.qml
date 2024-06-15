@@ -47,10 +47,10 @@ Item {
 
         StackLayout {
             id: stackLayout
+            currentIndex: 0
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            // Define five identical AnimeList instances for now
             AnimeList {
                 id: currentlyWatchingList
                 Layout.fillWidth: true
@@ -75,6 +75,7 @@ Item {
     }
 
     function switchTab(index) {
+        if (stackLayout.currentIndex === index) return;
         stackLayout.currentIndex = index
         var entries = anilist.readAnimeWithEntriesFromDB(index)
 
@@ -92,5 +93,10 @@ Item {
                 droppedList.updateList(entries)
                 break
         }
+    }
+
+    Component.onCompleted: {
+        stackLayout.currentIndex = -1; // Set to an invalid index
+        switchTab(0)
     }
 }

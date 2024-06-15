@@ -27,7 +27,7 @@ Item {
                     fillMode: Image.PreserveAspectFit
                 }
                 Text {
-                    text: model.titleRomaji
+                    text: model.titleEnglish !== null && model.titleEnglish !== "" ? model.titleEnglish : model.titleRomaji
                     wrapMode: Text.WordWrap
                     width: parent.width - 70
                 }

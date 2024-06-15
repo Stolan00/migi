@@ -51,6 +51,7 @@ Anime::Anime(const QJsonObject jsonValues) {
     titleEnglish = animeTitle["english"].toString();
     titleNative  = animeTitle["native"].toString();
 
+
     synopsis = animeValues["description"].toString();
 
     QJsonObject animeImage = animeValues["coverImage"].toObject();

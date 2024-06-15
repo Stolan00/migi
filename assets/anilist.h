@@ -26,6 +26,7 @@ public:
 signals:
     void requestFinished(const QJsonObject& data);
     void viewerListsReady(const QList<Anime>& mediaList);
+    void databaseReady();
 
 public slots:
     void searchAnime();

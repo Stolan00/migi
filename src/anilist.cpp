@@ -7,6 +7,7 @@
 Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
+    populateDatabase(); // For now I'm doing this instead of checking for updates manually
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -128,6 +129,9 @@ bool Anilist::onPopulateDatabaseReady(const QList<Anime> &mediaList) {
     addListsToDB(mediaList);
 
     disconnect(this, &Anilist::viewerListsReady, this, &Anilist::viewerListsReady);
+
+    emit databaseReady();
+
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -155,6 +159,25 @@ QVariantList Anilist::readAnimeWithEntriesFromDB(Anime::EntryStatus status) {
     }
 
     QVariantList rows = m_dbManager.executeQuery(getAnimeAndEntryDataQuery);
+
+    // TODO: not sure if this should happen in another cpp method or in the QML file
+    // also need to show userPreferred rather than defaulting to titleEnglish
+    std::sort(rows.begin(), rows.end(), [](const QVariant &a, const QVariant &b) {
+        QVariantMap mapA = a.toMap();
+        QVariantMap mapB = b.toMap();
+
+        QString titleA = mapA.value("titleEnglish").toString();
+        if (titleA.isEmpty()) {
+            titleA = mapA.value("titleRomaji").toString();
+        }
+
+        QString titleB = mapB.value("titleEnglish").toString();
+        if (titleB.isEmpty()) {
+            titleB = mapB.value("titleRomaji").toString();
+        }
+
+        return titleA < titleB;
+    });
 
     return rows;
 }
