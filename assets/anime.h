@@ -29,6 +29,7 @@ public:
         INVALID
     };
 
+
     enum class MediaFormat { //TODO: probably doesnt belong here
         TV,
         TV_SHORT,

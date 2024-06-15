@@ -150,7 +150,6 @@ QVariantList Anilist::readAnimeWithEntriesFromDB(Anime::EntryStatus status) {
     QString getAnimeAndEntryDataQuery = m_resources.readResource(AppResourceKey::GetAnimeAndEntryData).toString();
 
     if (status != Anime::EntryStatus::INVALID) {
-        qDebug() << "test";
         getAnimeAndEntryDataQuery.replace("-- ", "");
         getAnimeAndEntryDataQuery.replace("{status}", QString::number(static_cast<int>(status)));
     }
