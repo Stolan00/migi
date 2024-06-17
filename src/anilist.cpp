@@ -162,22 +162,22 @@ QVariantList Anilist::readAnimeWithEntriesFromDB(Anime::EntryStatus status) {
 
     // TODO: not sure if this should happen in another cpp method or in the QML file
     // also need to show userPreferred rather than defaulting to titleEnglish
-    // std::sort(rows.begin(), rows.end(), [](const QVariant &a, const QVariant &b) {
-    //     QVariantMap mapA = a.toMap();
-    //     QVariantMap mapB = b.toMap();
+    std::sort(rows.begin(), rows.end(), [](const QVariant &a, const QVariant &b) {
+        QVariantMap mapA = a.toMap();
+        QVariantMap mapB = b.toMap();
 
-    //     QString titleA = mapA.value("titleEnglish").toString();
-    //     if (titleA.isEmpty()) {
-    //         titleA = mapA.value("titleRomaji").toString();
-    //     }
+        QString titleA = mapA.value("titleEnglish").toString();
+        if (titleA.isEmpty()) {
+            titleA = mapA.value("titleRomaji").toString();
+        }
 
-    //     QString titleB = mapB.value("titleEnglish").toString();
-    //     if (titleB.isEmpty()) {
-    //         titleB = mapB.value("titleRomaji").toString();
-    //     }
+        QString titleB = mapB.value("titleEnglish").toString();
+        if (titleB.isEmpty()) {
+            titleB = mapB.value("titleRomaji").toString();
+        }
 
-    //     return titleA < titleB;
-    // });
+        return titleA < titleB;
+    });
 
     return rows;
 }

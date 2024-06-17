@@ -15,33 +15,20 @@ Item {
             Layout.fillWidth: true
             currentIndex: 0
 
-            TabButton {
-                text: "Currently Watching"
-                background: Rectangle {
-                    color: tabBar.currentIndex === 0 ? "lightslategray" : "slategray"
+            Repeater {
+                model: [
+                    {text: "Currently Watching", index: 0},
+                    {text: "Plan to Watch", index: 1},
+                    {text: "Completed", index: 2},
+                    {text: "Dropped", index: 3}
+                ]
+                delegate: TabButton {
+                    text: modelData.text
+                    background: Rectangle {
+                        color: tabBar.currentIndex === modelData.index ? "lightslategray" : "slategray"
+                    }
+                    onClicked: libraryContainer.switchTab(modelData.index)
                 }
-                onClicked: libraryContainer.switchTab(0)
-            }
-            TabButton {
-                text: "Plan to Watch"
-                background: Rectangle {
-                    color: tabBar.currentIndex === 1 ? "lightslategray" : "slategray"
-                }
-                onClicked: libraryContainer.switchTab(1)
-            }
-            TabButton {
-                text: "Completed"
-                background: Rectangle {
-                    color: tabBar.currentIndex === 2 ? "lightslategray" : "slategray"
-                }
-                onClicked: libraryContainer.switchTab(2)
-            }
-            TabButton {
-                text: "Dropped"
-                background: Rectangle {
-                    color: tabBar.currentIndex === 3 ? "lightslategray" : "slategray"
-                }
-                onClicked: libraryContainer.switchTab(3)
             }
         }
 
@@ -51,26 +38,70 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            AnimeList {
-                id: currentlyWatchingList
+            Loader {
+                id: currentlyWatchingLoader
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                sourceComponent: currentlyWatchingComponent
+                active: stackLayout.currentIndex === 0
             }
-            AnimeList {
-                id: planToWatchList
+            Loader {
+                id: planToWatchLoader
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                sourceComponent: planToWatchComponent
+                active: stackLayout.currentIndex === 1
             }
-            AnimeList {
-                id: completedList
+            Loader {
+                id: completedLoader
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                sourceComponent: completedComponent
+                active: stackLayout.currentIndex === 2
             }
-            AnimeList {
-                id: droppedList
+            Loader {
+                id: droppedLoader
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                sourceComponent: droppedComponent
+                active: stackLayout.currentIndex === 3
             }
+        }
+    }
+
+    Component {
+        id: currentlyWatchingComponent
+        AnimeList {
+            id: currentlyWatchingList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+    }
+
+    Component {
+        id: planToWatchComponent
+        AnimeList {
+            id: planToWatchList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+    }
+
+    Component {
+        id: completedComponent
+        AnimeList {
+            id: completedList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+        }
+    }
+
+    Component {
+        id: droppedComponent
+        AnimeList {
+            id: droppedList
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
     }
 
@@ -81,16 +112,16 @@ Item {
 
         switch (index) {
             case 0:
-                currentlyWatchingList.updateList(entries)
+                currentlyWatchingLoader.item.updateList(entries)
                 break
             case 1:
-                planToWatchList.updateList(entries)
+                planToWatchLoader.item.updateList(entries)
                 break
             case 2:
-                completedList.updateList(entries)
+                completedLoader.item.updateList(entries)
                 break
             case 3:
-                droppedList.updateList(entries)
+                droppedLoader.item.updateList(entries)
                 break
         }
     }

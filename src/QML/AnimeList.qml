@@ -15,7 +15,20 @@ Item {
             id: animeListModel
         }
 
-        delegate: Item {
+        delegate: Loader {
+            width: animeListContainer.width
+            height: 100
+            sourceComponent: animeItemDelegate
+            active: visible
+            // Pass the model data to the component
+            property var modelData: model
+        }
+    }
+
+    Component {
+        id: animeItemDelegate
+
+        Item {
             width: animeListContainer.width
             height: 100
             Row {
@@ -25,11 +38,11 @@ Item {
                     width: 50
                     height: 75
                     fillMode: Image.PreserveAspectFit
-                    source: "file:///" + getAnimeImageSource(model.id)
+                    source: anilist ? "file:///" + getAnimeImageSource(modelData.id) : ""
                 }
 
                 Text {
-                    text: model.titleEnglish !== null && model.titleEnglish !== "" ? model.titleEnglish : model.titleRomaji
+                    text: modelData.titleEnglish !== null && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji
                     wrapMode: Text.WordWrap
                     width: parent.width - 70
                     font.family: 'Helvetica'
@@ -38,8 +51,10 @@ Item {
         }
     }
 
-    // Define the function in the top-level Item
     function getAnimeImageSource(id) {
+        if (anilist === null || anilist === undefined) {
+            return "path/to/placeholder.png"; // Return a placeholder image path if anilist is not available
+        }
         return anilist.getAnimeImage(id);
     }
 
