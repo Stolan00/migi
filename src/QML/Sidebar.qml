@@ -17,7 +17,13 @@ Item {
             text: "Home"
             index: 0
             selected: index == selectedIndex
-            onClicked: selectedIndex = index
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    selectedIndex = parent.index
+                }
+            }
         }
 
         IconButton {
@@ -25,8 +31,12 @@ Item {
             text: "Library"
             index: 1
             selected: index == selectedIndex
-            onClicked: {
-                selectedIndex = index
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    selectedIndex = parent.index
+                }
             }
         }
 
@@ -35,7 +45,13 @@ Item {
             text: "Settings"
             index: 2
             selected: index == selectedIndex
-            onClicked: selectedIndex = index
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    selectedIndex = parent.index
+                }
+            }
         }
 
         IconButton {
@@ -43,7 +59,13 @@ Item {
             text: "Profile"
             index: 3
             selected: index == selectedIndex
-            onClicked: selectedIndex = index
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    selectedIndex = parent.index
+                }
+            }
         }
 
         IconButton {
@@ -51,7 +73,13 @@ Item {
             text: "Help"
             index: 4
             selected: index == selectedIndex
-            onClicked: selectedIndex = index
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    selectedIndex = parent.index
+                }
+            }
         }
     }
 }

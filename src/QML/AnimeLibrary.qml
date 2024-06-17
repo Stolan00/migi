@@ -27,7 +27,14 @@ Item {
                     background: Rectangle {
                         color: tabBar.currentIndex === modelData.index ? "lightslategray" : "slategray"
                     }
-                    onClicked: libraryContainer.switchTab(modelData.index)
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            tabBar.currentIndex = modelData.index
+                            libraryContainer.switchTab(modelData.index)
+                        }
+                    }
                 }
             }
         }
