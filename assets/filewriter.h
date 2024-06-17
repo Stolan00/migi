@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <QDebug> //temp
 #include <QDir>
+#include <QStandardPaths>
 
 class FileWriter : public QObject
 {
@@ -18,6 +19,9 @@ public:
     QString readFile(const QString& path);
     QStringList readFilesFromDirectory(const QString& directoryPath, const QStringList& fileExtensions);
     QStringList readFilesFromDirectory(const QString& directoryPath, const QString& fileExtension);
+    bool writeAppData(QString &path, QVariant& data);
+    QVariant readAppData(QString& path);
+    QString getAppDataPath(QString& fileName);
 
 signals:
 

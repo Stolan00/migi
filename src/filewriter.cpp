@@ -67,3 +67,54 @@ QStringList FileWriter::readFilesFromDirectory(const QString& directoryPath, con
 QStringList FileWriter::readFilesFromDirectory(const QString& directoryPath, const QString& fileExtension) {
     return readFilesFromDirectory(directoryPath, QStringList() << fileExtension);
 }
+// --------------------------------------------------------------------------------------------------------------------------
+bool FileWriter::writeAppData(QString& path, QVariant& data) {
+    QString appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir appDataDir(appDataLocation);
+
+    if (!appDataDir.exists()) {
+        appDataDir.mkpath(".");
+    }
+
+    QString filePath = appDataDir.filePath(path);
+
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        out << "Your data here";
+        file.close();
+    } else {
+        qWarning("Could not open file for writing");
+    }
+
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QVariant FileWriter::readAppData(QString& path) {
+    QString appDataLocation = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir appDataDir(appDataLocation);
+
+    if (!appDataDir.exists()) {
+        appDataDir.mkpath(".");
+    }
+
+    QString filePath = appDataDir.filePath(path);
+
+    QFile file(filePath);
+
+
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        QString data = in.readAll();
+        file.close();
+    } else {
+        qWarning("Could not open file for reading");
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QString FileWriter::getAppDataPath(QString& fileName) {
+    QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+    QString filePath = QString("%1/data/%2").arg(appDataPath, fileName);
+
+    return filePath;
+}

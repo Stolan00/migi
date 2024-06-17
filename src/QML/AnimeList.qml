@@ -20,18 +20,34 @@ Item {
             height: 100
             Row {
                 spacing: 10
+
                 Image {
-                    source: model.imageLink
                     width: 50
                     height: 75
                     fillMode: Image.PreserveAspectFit
+                    source: "file:///" + getAnimeImageSource(model.id)
                 }
+
                 Text {
                     text: model.titleEnglish !== null && model.titleEnglish !== "" ? model.titleEnglish : model.titleRomaji
                     wrapMode: Text.WordWrap
                     width: parent.width - 70
                 }
             }
+        }
+    }
+
+    // Define the function in the top-level Item
+    function getAnimeImageSource(id) {
+        return anilist.getAnimeImage(id);
+    }
+
+    function getAnimeImageFullPath(id) {
+        var relativePath = getAnimeImageSource(id);
+        if (Qt.platform.os === "windows") {
+            return "file:///" + relativePath.replace(/\\/g, "/");
+        } else {
+            return "file://" + relativePath;
         }
     }
 

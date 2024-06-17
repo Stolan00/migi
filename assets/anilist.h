@@ -34,6 +34,7 @@ public slots:
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
+    QString getAnimeImage(int id);
     void populateDatabase();
 
     bool onPopulateDatabaseReady(const QList<Anime>& mediaList);

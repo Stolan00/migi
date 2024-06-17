@@ -374,6 +374,14 @@ void Anilist::updateDatabase() {
 
 }
 // --------------------------------------------------------------------------------------------------------------------------
+QString Anilist::getAnimeImage(int id) {
+    FileWriter files;
+    QString imageName = QString("images/%1.png").arg(id);
+    QString imagePath = QString(files.getAppDataPath(imageName));
+
+    return imagePath;
+}
+// --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
     QStringList tables = createDBTables();
 
