@@ -23,3 +23,4 @@ enum class AppSettingsKey {
 
 // Function to convert AppSettingKey to QString
 QString toString(AppSettingsKey key);
+

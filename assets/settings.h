@@ -34,4 +34,3 @@ private:
     static QMutex mutex; // thread safety
 };
 
-Q_DECLARE_METATYPE(AppSettingsKey)
