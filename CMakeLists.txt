@@ -52,12 +52,18 @@ qt_add_qml_module(appanilist_project
         QML_FILES src/QML/AnimeList.qml
         QML_FILES src/QML/AnimeLibrary.qml
         QML_FILES
+        QML_FILES src/QML/AppSettings.qml
+        RESOURCES src/QML/qmldir
 )
 
 # Add the assets and src directories to the include directories
 target_include_directories(appanilist_project
     PRIVATE assets
     PRIVATE src
+)
+
+set_source_files_properties(AppSettings.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
 # Set target properties

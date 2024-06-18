@@ -1,3 +1,4 @@
+// main.qml
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
@@ -5,6 +6,7 @@ import AppSettings 1.0
 import "./src/QML"
 
 Window {
+    id: window
     width: 1200
     height: 480
     visible: true
@@ -65,6 +67,14 @@ Window {
                         function toggle() {
                             visible = sidebar.selectedIndex === index
                             enabled = sidebar.selectedIndex === index
+                        }
+                    }
+
+                    Button {
+                        text: "Load Setting"
+                        onClicked: {
+                            var value = Settings.value(AppSettingsKey.AccountAnilistViewerId);
+                            console.log("Loaded value:", value);
                         }
                     }
 

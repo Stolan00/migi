@@ -37,9 +37,7 @@ QVariant Settings::value(const AppSettingsKey key) {
 
     QVariant result = settings.value( path );
 
-
-    return result.toString();//, settingDoesNotExist ); // Will return null variant if no setting exists, can be checked with .isNull()
-                                                                // dont think thats accurate actually
+    return result.toString();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QObject* Settings::create(QQmlEngine *engine, QJSEngine *scriptEngine) {

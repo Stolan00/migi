@@ -19,11 +19,11 @@ public:
 
     // explicit Settings(QObject *parent = nullptr);
 
-    //TODO: these should probably be slots instead
+    static QObject* create(QQmlEngine *engine, QJSEngine *scriptEngine);
+
+public slots:
     static bool setValue(const AppSettingsKey key, const QVariant& value);
     static QVariant value(const AppSettingsKey key);
-
-    static QObject* create(QQmlEngine *engine, QJSEngine *scriptEngine);
 
 signals:
 
@@ -34,3 +34,4 @@ private:
     static QMutex mutex; // thread safety
 };
 
+Q_DECLARE_METATYPE(AppSettingsKey)

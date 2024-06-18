@@ -23,6 +23,21 @@ Item {
             // Pass the model data to the component
             property var modelData: model
         }
+
+        flickDeceleration: 10000
+        maximumFlickVelocity: 3000
+
+        // WheelHandler {
+        //     id: wheelHandler
+        //     target: animeListView.contentItem
+        //     rotationScale: 2 // Adjust this value to change scroll speed
+        //     // onWheel: {
+        //     //     // Override default behavior if needed
+        //     //     animeListView.contentY -= wheel.angleDelta.y * 0.1 // Adjust this value to change scroll speed
+        //     //     wheel.accepted = true
+        //     // }
+        // }
+
     }
 
     Component {
