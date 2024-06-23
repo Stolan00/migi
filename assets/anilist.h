@@ -59,6 +59,7 @@ private:
     QVariantList convertToVariantList(const QList<Anime> &mediaList);
 
     void addListsToDB(const QList<Anime>& mediaList);
+    void updateListsInDB(const QList<Anime>& mediaList);
     void processViewerLists(const QJsonObject &data);
 
     void compareEntries(const QList<Anime>& mediaList);

@@ -18,7 +18,6 @@ DatabaseManager::DatabaseManager(const QString &path) {
         qDebug() << "Error: Failed to create database connection.";
     }
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 DatabaseManager::~DatabaseManager() {
     if (m_database.isOpen()) {
@@ -26,31 +25,26 @@ DatabaseManager::~DatabaseManager() {
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
-QVariantList DatabaseManager::executeQuery(const QString& queryStr) {
-    QVariantList results;
+QSharedPointer<QSqlQueryModel> DatabaseManager::executeQuery(const QSqlQuery query) {
+    QSharedPointer<QSqlQueryModel> model(new QSqlQueryModel);
 
     if (!m_database.isOpen()) {
         qDebug() << "Error: Database is not open.";
-        return results; // Return an empty list
+        return model; // Return an empty model
     }
 
-    QSqlQuery query(m_database);
-    if (!query.exec(queryStr)) {
-        qDebug() << "Error: Failed to execute query -" << query.lastError();
-        return results; // Return an empty list
+    // Move the query to the model
+    model->setQuery(std::move(query));
+
+    if (model->lastError().isValid()) {
+        qDebug() << "Error: Failed to execute query -" << model->lastError();
+        return model; // Return an empty model
     }
 
-    while (query.next()) {
-        QVariantMap row;
-        QSqlRecord record = query.record();
-        for (int i = 0; i < record.count(); ++i) {
-            row.insert(record.fieldName(i), query.value(i));
-        }
-        results.append(row);
-    }
-
-    return results;
+    return model;
 }
+
+
 // --------------------------------------------------------------------------------------------------------------------------
 bool DatabaseManager::createConnection(const QString& path) {
     // Ensure the settings value is correctly set

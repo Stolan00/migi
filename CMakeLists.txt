@@ -26,6 +26,7 @@ qt_add_qml_module(appanilist_project
         src/QML/IconButton.qml
     SOURCES
         src/anime.cpp
+        src/animelistmodel.cpp
         src/networkmanager.cpp
         src/anilist.cpp
         src/oauthimplicit.cpp
@@ -37,6 +38,7 @@ qt_add_qml_module(appanilist_project
         src/databasemanager.cpp
 
         assets/anime.h
+        assets/animelistmodel.h
         assets/networkmanager.h
         assets/anilist.h
         assets/oauthimplicit.h
@@ -54,6 +56,7 @@ qt_add_qml_module(appanilist_project
         QML_FILES
         QML_FILES src/QML/AppSettings.qml
         RESOURCES src/QML/qmldir
+        SOURCES assets/initdb.h
 )
 
 # Add the assets and src directories to the include directories

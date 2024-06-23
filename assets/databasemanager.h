@@ -1,9 +1,7 @@
 #pragma once
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
+#include <QtSql>
 #include <QtSql/QSqlError>
 #include <QDebug>
-#include <QSqlRecord>
 #include "filewriter.h"
 #include "qmutex.h"
 #include "settings.h"
@@ -16,7 +14,7 @@ class DatabaseManager : public QObject
 
 public:
     static DatabaseManager& instance();
-    QVariantList executeQuery(const QString& queryStr);
+    QSharedPointer<QSqlQueryModel> executeQuery(const QSqlQuery query);
     bool createConnection(const QString& path);
     bool createTable(const QString& createTableQuery);
     bool insertIntoTable(const QString& tableName, const QVariantMap& values);

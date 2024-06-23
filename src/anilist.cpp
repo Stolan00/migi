@@ -48,6 +48,12 @@ void Anilist::configureOAuth2() {
     m_netRequest.configureOAuth2(clientID, authUrl, accessUrl);
 }
 // --------------------------------------------------------------------------------------------------------------------------
+void Anilist::updateDatabase() {
+    connect(this, &Anilist::viewerListsReady, this, &Anilist::onUpdateDatabaseReady, Qt::UniqueConnection);
+
+    getViewerLists();
+}
+// --------------------------------------------------------------------------------------------------------------------------
 void Anilist::populateDatabase() {
     connect(this, &Anilist::viewerListsReady, this, &Anilist::onPopulateDatabaseReady, Qt::UniqueConnection);
 
@@ -145,41 +151,41 @@ bool Anilist::onUpdateDatabaseReady(const QList<Anime>& mediaList) {
 QVariantList Anilist::readEntriesFromDB() {
     QString getEntriesQuery = m_resources.readResource(AppResourceKey::GetEntryRows).toString();
 
-    QVariantList rows = m_dbManager.executeQuery(getEntriesQuery);
+    //QVariantList rows = m_dbManager.executeQuery(getEntriesQuery);
 
-    return rows;
+    //return rows;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QVariantList Anilist::readAnimeWithEntriesFromDB(Anime::EntryStatus status) {
-    QString getAnimeAndEntryDataQuery = m_resources.readResource(AppResourceKey::GetAnimeAndEntryData).toString();
+    // QString getAnimeAndEntryDataQuery = m_resources.readResource(AppResourceKey::GetAnimeAndEntryData).toString();
 
-    if (status != Anime::EntryStatus::INVALID) {
-        getAnimeAndEntryDataQuery.replace("-- ", "");
-        getAnimeAndEntryDataQuery.replace("{status}", QString::number(static_cast<int>(status)));
-    }
+    // if (status != Anime::EntryStatus::INVALID) {
+    //     getAnimeAndEntryDataQuery.replace("-- ", "");
+    //     getAnimeAndEntryDataQuery.replace("{status}", QString::number(static_cast<int>(status)));
+    // }
 
-    QVariantList rows = m_dbManager.executeQuery(getAnimeAndEntryDataQuery);
+    // QVariantList rows = m_dbManager.executeQuery(getAnimeAndEntryDataQuery);
 
-    // TODO: not sure if this should happen in another cpp method or in the QML file
-    // also need to show userPreferred rather than defaulting to titleEnglish
-    std::sort(rows.begin(), rows.end(), [](const QVariant &a, const QVariant &b) {
-        QVariantMap mapA = a.toMap();
-        QVariantMap mapB = b.toMap();
+    // // TODO: not sure if this should happen in another cpp method or in the QML file
+    // // also need to show userPreferred rather than defaulting to titleEnglish
+    // std::sort(rows.begin(), rows.end(), [](const QVariant &a, const QVariant &b) {
+    //     QVariantMap mapA = a.toMap();
+    //     QVariantMap mapB = b.toMap();
 
-        QString titleA = mapA.value("titleEnglish").toString();
-        if (titleA.isEmpty()) {
-            titleA = mapA.value("titleRomaji").toString();
-        }
+    //     QString titleA = mapA.value("titleEnglish").toString();
+    //     if (titleA.isEmpty()) {
+    //         titleA = mapA.value("titleRomaji").toString();
+    //     }
 
-        QString titleB = mapB.value("titleEnglish").toString();
-        if (titleB.isEmpty()) {
-            titleB = mapB.value("titleRomaji").toString();
-        }
+    //     QString titleB = mapB.value("titleEnglish").toString();
+    //     if (titleB.isEmpty()) {
+    //         titleB = mapB.value("titleRomaji").toString();
+    //     }
 
-        return titleA < titleB;
-    });
+    //     return titleA < titleB;
+    // });
 
-    return rows;
+    // return rows;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::compareEntries(const QList<Anime>& mediaList) {
@@ -290,6 +296,22 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
     return postRequest;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+void Anilist::updateListsInDB(const QList<Anime>& mediaList) {
+    // QString entryQuery = m_resources.readResource(AppResourceKey::GetEntryRows).toString();
+
+    // entryQuery.replace("--PLACEHOLDER--", QString("WHERE %1 = :value").arg("Entry.mediaId"));
+
+    // QVariantList entryRows = m_dbManager.executeQuery(entryQuery);
+
+    // for (const Anime& anime: mediaList) {
+    //     QSqlQuery query;
+    //     query.prepare(entryQuery);
+    //     query.bindValue(":value", anime.id);
+
+    //     m_dbManager.executeQuery(query);
+    // }
+}
+// --------------------------------------------------------------------------------------------------------------------------
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
 void Anilist::addListsToDB(const QList<Anime> &mediaList) {
@@ -368,10 +390,6 @@ void Anilist::addListsToDB(const QList<Anime> &mediaList) {
     if ( !m_dbManager.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
         qDebug() << "Bulk insert failed.";
     }
-}
-// --------------------------------------------------------------------------------------------------------------------------
-void Anilist::updateDatabase() {
-
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QString Anilist::getAnimeImage(int id) {
