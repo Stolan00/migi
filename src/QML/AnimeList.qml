@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
+import com.migi.models
 
 Item {
     id: animeListContainer
@@ -11,7 +12,7 @@ Item {
         width: parent.width
         height: parent.height
 
-        model: ListModel {
+        model: AnimeListModel {
             id: animeListModel
         }
 
@@ -19,25 +20,11 @@ Item {
             width: animeListContainer.width
             height: 100
             sourceComponent: animeItemDelegate
-            active: visible
-            // Pass the model data to the component
             property var modelData: model
         }
 
         flickDeceleration: 10000
         maximumFlickVelocity: 3000
-
-        // WheelHandler {
-        //     id: wheelHandler
-        //     target: animeListView.contentItem
-        //     rotationScale: 2 // Adjust this value to change scroll speed
-        //     // onWheel: {
-        //     //     // Override default behavior if needed
-        //     //     animeListView.contentY -= wheel.angleDelta.y * 0.1 // Adjust this value to change scroll speed
-        //     //     wheel.accepted = true
-        //     // }
-        // }
-
     }
 
     Component {
@@ -53,17 +40,21 @@ Item {
                     width: 50
                     height: 75
                     fillMode: Image.PreserveAspectFit
-                    source: anilist ? "file:///" + getAnimeImageSource(modelData.id) : ""
+                    source: modelData && modelData.anime_id ? "file:///" + getAnimeImageSource(modelData.anime_id) : ""
                 }
 
                 Text {
-                    text: modelData.titleEnglish !== null && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji
+                    text: modelData ? (modelData.titleEnglish && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji) : ""
                     wrapMode: Text.WordWrap
                     width: parent.width - 70
                     font.family: 'Helvetica'
                 }
             }
         }
+    }
+
+    function setStatusFilter(id) {
+        animeListModel.setStatusFilter(id)
     }
 
     function getAnimeImageSource(id) {
@@ -73,19 +64,11 @@ Item {
         return anilist.getAnimeImage(id);
     }
 
-    function getAnimeImageFullPath(id) {
-        var relativePath = getAnimeImageSource(id);
-        if (Qt.platform.os === "windows") {
-            return "file:///" + relativePath.replace(/\\/g, "/");
-        } else {
-            return "file://" + relativePath;
-        }
-    }
-
     function updateList(animeData) {
         animeListModel.clear();
         for (var i = 0; i < animeData.length; i++) {
             animeListModel.append(animeData[i]);
         }
+        console.log("Updated list with data: ", animeData)
     }
 }

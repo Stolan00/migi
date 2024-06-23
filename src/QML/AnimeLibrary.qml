@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import com.migi.models 1.0
 
 Item {
     id: libraryContainer
@@ -39,102 +40,18 @@ Item {
             }
         }
 
-        StackLayout {
-            id: stackLayout
-            currentIndex: 0
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-
-            Loader {
-                id: currentlyWatchingLoader
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                sourceComponent: currentlyWatchingComponent
-                active: stackLayout.currentIndex === 0
-            }
-            Loader {
-                id: planToWatchLoader
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                sourceComponent: planToWatchComponent
-                active: stackLayout.currentIndex === 1
-            }
-            Loader {
-                id: completedLoader
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                sourceComponent: completedComponent
-                active: stackLayout.currentIndex === 2
-            }
-            Loader {
-                id: droppedLoader
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                sourceComponent: droppedComponent
-                active: stackLayout.currentIndex === 3
-            }
-        }
-    }
-
-    Component {
-        id: currentlyWatchingComponent
         AnimeList {
-            id: currentlyWatchingList
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
-    }
-
-    Component {
-        id: planToWatchComponent
-        AnimeList {
-            id: planToWatchList
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
-    }
-
-    Component {
-        id: completedComponent
-        AnimeList {
-            id: completedList
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-        }
-    }
-
-    Component {
-        id: droppedComponent
-        AnimeList {
-            id: droppedList
+            id: animeLibraryList
             Layout.fillWidth: true
             Layout.fillHeight: true
         }
     }
 
     function switchTab(index) {
-        if (stackLayout.currentIndex === index) return;
-        stackLayout.currentIndex = index
-        var entries = anilist.readAnimeWithEntriesFromDB(index)
-
-        switch (index) {
-            case 0:
-                currentlyWatchingLoader.item.updateList(entries)
-                break
-            case 1:
-                planToWatchLoader.item.updateList(entries)
-                break
-            case 2:
-                completedLoader.item.updateList(entries)
-                break
-            case 3:
-                droppedLoader.item.updateList(entries)
-                break
-        }
+        animeLibraryList.setStatusFilter(index)
     }
 
     Component.onCompleted: {
-        stackLayout.currentIndex = -1; // Set to an invalid index
         switchTab(0)
     }
 }

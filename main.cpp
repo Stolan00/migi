@@ -4,6 +4,7 @@
 #include "assets/anilist.h"
 #include "assets/filewriter.h"
 #include "assets/settings.h"
+#include "assets/animelistmodel.h"
 #include <QMetaType>
 // --------------------------------------------------------------------------------------------------------------------------
 static void connectToDatabase()
@@ -15,13 +16,18 @@ static void connectToDatabase()
             qFatal("Cannot add database: %s", qPrintable(database.lastError().text()));
     }
 
-    const QDir writeDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    if (!writeDir.mkpath("."))
-        qFatal("Failed to create writable directory at %s", qPrintable(writeDir.absolutePath()));
+    // Define the subdirectory path within the writable AppData location
+    const QString subDir = "/Data/db";
+    QDir writeDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + subDir);
 
-    // Ensure that we have a writable location on all devices.
-    const QString fileName = writeDir.absolutePath() + "migi_database.sqlite3";
-    // When using the SQLite driver, open() will create the SQLite database if it doesn't exist.
+    // Create the subdirectory path if it doesn't exist
+    if (!writeDir.exists() && !writeDir.mkpath(".")) {
+        qFatal("Failed to create writable directory at %s", qPrintable(writeDir.absolutePath()));
+    }
+
+    // Ensure that we have a writable location on all devices
+    const QString fileName = writeDir.absolutePath() + "/migi_database.sqlite3";
+    // When using the SQLite driver, open() will create the SQLite database if it doesn't exist
     database.setDatabaseName(fileName);
     if (!database.open()) {
         qFatal("Cannot open database: %s", qPrintable(database.lastError().text()));
@@ -34,16 +40,18 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    QCoreApplication::setOrganizationName("MigiSoft");
+    QCoreApplication::setOrganizationName("Migi");
     QCoreApplication::setApplicationName("Migi");
 
     connectToDatabase();
 
     //TODO: register model(s) using qmlRegisterType
 
-    QQmlApplicationEngine engine;
+    qmlRegisterType<AnimeListModel>("com.migi.models", 1, 0, "AnimeListModel");
 
     qmlRegisterSingletonType<Settings>("AppSettings", 1, 0, "Settings", Settings::create);
+
+    QQmlApplicationEngine engine;
 
     Anilist anilist;
     engine.rootContext()->setContextProperty("anilist", &anilist);

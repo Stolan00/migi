@@ -2,7 +2,7 @@
 // --------------------------------------------------------------------------------------------------------------------------
 static void createTable()
 {
-    if (QSqlDatabase::database().tables().contains(QStringLiteral("Contacts"))) {
+    if (QSqlDatabase::database().tables().contains(QStringLiteral("AnimeListView"))) {
         // The table already exists; we don't need to do anything.
         return;
     }
@@ -10,13 +10,14 @@ static void createTable()
     QSqlQuery query;
     if (!query.exec(
             R"(
-            CREATE VIEW IF NOT EXISTS animeListView AS
+            CREATE VIEW IF NOT EXISTS AnimeListView AS
             SELECT
                 a.id AS anime_id,
                 a.titleEnglish,
                 a.titleRomaji,
                 e.progress,
                 e.score,
+                e.status,
                 mf.formatName as type
             FROM
                 Anime a
@@ -24,6 +25,8 @@ static void createTable()
                 Entry e ON a.id = e.mediaId
             JOIN
                 MediaFormat mf on a.mediaFormat = mf.formatId
+            JOIN
+                EntryStatus es on e.status = es.statusId
             )"
         )) {
         qFatal("Failed to query database: %s", qPrintable(query.lastError().text()));
@@ -89,5 +92,10 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("format");
 
     return QVariant();
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnimeListModel::setStatusFilter(int statusId) {
+    setFilter(QString("status = %1").arg(statusId));
+    select();
 }
 // --------------------------------------------------------------------------------------------------------------------------
