@@ -40,9 +40,10 @@ static void connectToDatabase()
     QStringList tables = files.readFilesFromDirectory(":/assets/sql/tables", "sql");
 
     for (auto& table : tables) {
-        if(db.createTable(table))
-            qDebug() << "TABLE CREATE";
+        db.createTable(table);
     }
+
+    db.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
 }
 // --------------------------------------------------------------------------------------------------------------------------
 // Main entrypoint to program
@@ -80,8 +81,6 @@ int main(int argc, char *argv[])
 
     engine.load(url);
 
-
     return app.exec();
 }
 // --------------------------------------------------------------------------------------------------------------------------
-

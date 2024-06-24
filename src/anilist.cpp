@@ -1,5 +1,6 @@
 #include "anilist.h"
 #include "filewriter.h"
+#include "assets/animelistmodel.h"
 #include <QResource>
 
 #include <QDebug>
@@ -7,7 +8,8 @@
 Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
-    populateDatabase(); // For now I'm doing this instead of checking for updates manually
+    updateDatabase();
+    //populateDatabase(); // For now I'm doing this instead of checking for updates manually
     qDebug() << "DONE";
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -144,9 +146,12 @@ bool Anilist::onPopulateDatabaseReady(const QList<Anime> &mediaList) {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::onUpdateDatabaseReady(const QList<Anime>& mediaList) {
-    //addListsToDB(mediaList);
+    updateListsInDB(mediaList);
 
     disconnect(this, &Anilist::viewerListsReady, this, &Anilist::viewerListsReady);
+
+    emit databaseReady();
+
     return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -299,29 +304,52 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::updateListsInDB(const QList<Anime>& mediaList) {
-    // QString entryQuery = m_resources.readResource(AppResourceKey::GetEntryRows).toString();
+    QSqlTableModel animeTable;
+    animeTable.setTable("Anime");
 
-    // entryQuery.replace("--PLACEHOLDER--", QString("WHERE %1 = :value").arg("Entry.mediaId"));
+    if (!animeTable.select()) {
+        qDebug() << "COULD NOT SELECT ANIME TABLE";
+        return;
+    }
 
-    // QVariantList entryRows = m_dbManager.executeQuery(entryQuery);
+    // Loop over mediaList
+    for (const Anime& anime : mediaList) {
+        // Set filter to find the corresponding entry in the Anime table
+        animeTable.setFilter(QString("Id = %1").arg(anime.id));
+        animeTable.select();  // Re-select to apply the filter
 
-    // for (const Anime& anime: mediaList) {
-    //     QSqlQuery query;
-    //     query.prepare(entryQuery);
-    //     query.bindValue(":value", anime.id);
+        if (animeTable.rowCount() > 0) {
+            QSqlRecord record = animeTable.record(0);  // Get the first (and only) record
 
-    //     m_dbManager.executeQuery(query);
-    // }
+            // Compare anilistModified values
+            int dbAnilistModified = record.value("anilistModified").toInt();
+            if (anime.anilistModified > dbAnilistModified) {
+                qDebug() << "WOULD HAVE UPDATED ENTRY: " << anime.id << " " << anime.titleRomaji;
+                //record.setValue("anilistModified", anime.anilistModified);
+                // Set other fields as necessary
+                // Example: record.setValue("title", anime.title);
+                animeTable.setRecord(0, record);
+                // if (!animeTable.submitAll()) {
+                //     qDebug() << "Failed to update record:" << animeTable.lastError();
+                // } else {
+                //     qDebug() << "Updated record for Anime ID:" << anime.id;
+                // }
+            }
+        } else {
+            // Handle case where the entry is not found in the table
+            qDebug() << "Anime ID not found in the table:" << anime.id;
+        }
+    }
+
+    // Reset filter after the operation
+    animeTable.setFilter("");
+    animeTable.select();
 }
+
 // --------------------------------------------------------------------------------------------------------------------------
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
 void Anilist::addListsToDB(const QList<Anime> &mediaList) {
-    //m_dbManager.deleteAllTables();
-
-    //createDBTables();
-    //executeSQLScripts();
-
     QList<QHash<QString, QVariant>> mediaValuesList;
     QList<QHash<QString, QVariant>> myInfoValuesList;
     QList<QHash<QString, QVariant>> animeGenreList;

@@ -27,6 +27,7 @@ qt_add_qml_module(appanilist_project
     SOURCES
         src/anime.cpp
         src/animelistmodel.cpp
+        src/animedetailmodel.cpp
         src/networkmanager.cpp
         src/anilist.cpp
         src/oauthimplicit.cpp
@@ -39,6 +40,7 @@ qt_add_qml_module(appanilist_project
 
         assets/anime.h
         assets/animelistmodel.h
+        assets/animedetailmodel.h
         assets/networkmanager.h
         assets/anilist.h
         assets/oauthimplicit.h
