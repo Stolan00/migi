@@ -95,8 +95,5 @@ Window {
             mainContent.visible = true;
             library.switchTab(0);
         });
-
-        // Assume you have some function to start populating the database
-        anilist.startPopulatingDatabase();
     }
 }

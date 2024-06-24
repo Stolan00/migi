@@ -15,7 +15,9 @@ public:
         TitleRomajiRole,
         ProgressRole,
         ScoreRole,
-        FormatRole
+        StatusRole,
+        FormatRole,
+        SortTitleRole
     };
 
     QHash<int, QByteArray> roleNames() const override;
@@ -25,4 +27,6 @@ public:
     Q_INVOKABLE void setStatusFilter(int statusId);
 
 signals:
+private:
+    static void createTable();
 };

@@ -8,6 +8,7 @@ Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
     populateDatabase(); // For now I'm doing this instead of checking for updates manually
+    qDebug() << "DONE";
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::searchAnime() {
@@ -137,6 +138,7 @@ bool Anilist::onPopulateDatabaseReady(const QList<Anime> &mediaList) {
     disconnect(this, &Anilist::viewerListsReady, this, &Anilist::viewerListsReady);
 
     emit databaseReady();
+    qDebug() << "DATABASE READY EMITTED";
 
     return true;
 }
@@ -315,10 +317,10 @@ void Anilist::updateListsInDB(const QList<Anime>& mediaList) {
 // TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
 //       as-needed
 void Anilist::addListsToDB(const QList<Anime> &mediaList) {
-    m_dbManager.deleteAllTables();
+    //m_dbManager.deleteAllTables();
 
-    createDBTables();
-    executeSQLScripts();
+    //createDBTables();
+    //executeSQLScripts();
 
     QList<QHash<QString, QVariant>> mediaValuesList;
     QList<QHash<QString, QVariant>> myInfoValuesList;
@@ -401,26 +403,13 @@ QString Anilist::getAnimeImage(int id) {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
-    QStringList tables = createDBTables();
+    //QStringList tables = createDBTables();
 
-    qDebug() << tables;
+    // qDebug() << tables;
 
-    QHash<QString, QVariant> mediaValues = entry.asHash();
+    // QHash<QString, QVariant> mediaValues = entry.asHash();
 
     //db.insertIntoTable("Anime", mediaValues);
-}
-// --------------------------------------------------------------------------------------------------------------------------
-QStringList Anilist::createDBTables() {
-
-    m_dbManager.deleteAllTables();
-    FileWriter files;
-    QStringList tables = files.readFilesFromDirectory(":/assets/sql/tables", "sql");
-
-    for (auto& table : tables) {
-        if(m_dbManager.createTable(table))
-            qDebug() << "TABLE CREATED";
-    }
-    return m_dbManager.getAllTables();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::executeSQLScripts() {

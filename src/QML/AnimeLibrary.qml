@@ -49,6 +49,7 @@ Item {
 
     function switchTab(index) {
         animeLibraryList.setStatusFilter(index)
+
     }
 
     Component.onCompleted: {

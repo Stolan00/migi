@@ -1,13 +1,27 @@
 #include "assets/animelistmodel.h"
 // --------------------------------------------------------------------------------------------------------------------------
-static void createTable()
+void AnimeListModel::createTable()
 {
-    if (QSqlDatabase::database().tables().contains(QStringLiteral("AnimeListView"))) {
-        // The table already exists; we don't need to do anything.
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isOpen()) {
+        qDebug() << "Database is not open!";
         return;
     }
 
-    QSqlQuery query;
+    // Check if the view exists
+    QSqlQuery query(db);
+    query.prepare("SELECT name FROM sqlite_master WHERE type='view' AND name='AnimeListView'");
+    if (!query.exec()) {
+        qDebug() << "Failed to check for view: " << query.lastError().text();
+        return;
+    }
+
+    if (query.next()) {
+        qDebug() << "VIEW EXISTS";
+        return;
+    }
+
+    qDebug() << "DIDNT RETURN";
     if (!query.exec(
             R"(
             CREATE VIEW IF NOT EXISTS AnimeListView AS
@@ -18,23 +32,28 @@ static void createTable()
                 e.progress,
                 e.score,
                 e.status,
-                mf.formatName as type
+                mf.formatName as type,
+                COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle
             FROM
                 Anime a
             JOIN
                 Entry e ON a.id = e.mediaId
             JOIN
-                MediaFormat mf on a.mediaFormat = mf.formatId
+                MediaFormat mf ON a.mediaFormat = mf.formatId
             JOIN
-                EntryStatus es on e.status = es.statusId
+                EntryStatus es ON e.status = es.statusId
             )"
-        )) {
-        qFatal("Failed to query database: %s", qPrintable(query.lastError().text()));
+            )) {
+        qDebug() << "QUERY FAILED: " << query.lastError().text();
+        qFatal("Failed to create view AnimeListView: %s", qPrintable(query.lastError().text()));
+    } else {
+        qDebug() << "View AnimeListView created successfully";
     }
 
-    query.exec(
-        R"(
-        CREATE TRIGGER update_animeListView INSTEAD OF UPDATE ON animeListView
+    // Create trigger if it does not exist
+    if (!query.exec(
+            R"(
+        CREATE TRIGGER IF NOT EXISTS update_animeListView INSTEAD OF UPDATE ON animeListView
         BEGIN
             -- Update progress
             UPDATE Entry
@@ -45,18 +64,25 @@ static void createTable()
             UPDATE Entry
             SET score = NEW.score
             WHERE mediaId = NEW.anime_id AND OLD.score != NEW.score;
-        END;)
+        END;
         )"
-    );
+            )) {
+        qDebug() << "TRIGGER QUERY FAILED: " << query.lastError().text();
+        qFatal("Failed to create trigger update_animeListView: %s", qPrintable(query.lastError().text()));
+    } else {
+        qDebug() << "Trigger update_animeListView created successfully";
+    }
 }
+
 // --------------------------------------------------------------------------------------------------------------------------
 AnimeListModel::AnimeListModel(QObject *parent)
     : QSqlTableModel(parent)
 {
     createTable();
-    setTable("animeListView");
+    setTable("AnimeListView");
     setEditStrategy(QSqlTableModel::OnManualSubmit);
     select();
+    qDebug() << "ALM CREATED";
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QHash<int, QByteArray> AnimeListModel::roleNames() const  {
@@ -67,6 +93,9 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[ProgressRole] = "progress";
     roles[ScoreRole] = "score";
     roles[FormatRole] = "format";
+    roles[StatusRole] = "status";
+    roles[SortTitleRole] = "sortTitle";
+
     return roles;
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -90,12 +119,17 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("score");
     else if (role == FormatRole)
         return record.value("format");
+    else if (role == StatusRole)
+        return record.value("status");
+    else if (role == SortTitleRole)
+        return record.value("sortTitle");
 
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::setStatusFilter(int statusId) {
     setFilter(QString("status = %1").arg(statusId));
+    setSort(SortTitleRole - Qt::UserRole, Qt::AscendingOrder);
     select();
 }
 // --------------------------------------------------------------------------------------------------------------------------

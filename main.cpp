@@ -5,6 +5,7 @@
 #include "assets/filewriter.h"
 #include "assets/settings.h"
 #include "assets/animelistmodel.h"
+#include "assets/databasemanager.h"
 #include <QMetaType>
 // --------------------------------------------------------------------------------------------------------------------------
 static void connectToDatabase()
@@ -33,6 +34,15 @@ static void connectToDatabase()
         qFatal("Cannot open database: %s", qPrintable(database.lastError().text()));
         QFile::remove(fileName);
     }
+
+    FileWriter files;
+    DatabaseManager& db = DatabaseManager::instance();
+    QStringList tables = files.readFilesFromDirectory(":/assets/sql/tables", "sql");
+
+    for (auto& table : tables) {
+        if(db.createTable(table))
+            qDebug() << "TABLE CREATE";
+    }
 }
 // --------------------------------------------------------------------------------------------------------------------------
 // Main entrypoint to program
@@ -44,8 +54,6 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Migi");
 
     connectToDatabase();
-
-    //TODO: register model(s) using qmlRegisterType
 
     qmlRegisterType<AnimeListModel>("com.migi.models", 1, 0, "AnimeListModel");
 
@@ -71,6 +79,7 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
 
     engine.load(url);
+
 
     return app.exec();
 }

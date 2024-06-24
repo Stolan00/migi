@@ -64,7 +64,6 @@ private:
 
     void compareEntries(const QList<Anime>& mediaList);
 
-    QStringList createDBTables();
     bool executeSQLScripts();
     void openDatabaseConnection();
 
