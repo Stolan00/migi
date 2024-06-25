@@ -92,6 +92,14 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
     animeGenreTable.setTable("AnimeGenre");
     animeGenreTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
+    QSqlTableModel studioTable;
+    studioTable.setTable("Studio");
+    studioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
+
+    QSqlTableModel animeStudioTable;
+    animeStudioTable.setTable("Studio");
+    animeStudioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
+
     if (!animeTable.select()) {
         qDebug() << "COULD NOT SELECT ANIME TABLE";
         return false;
@@ -170,6 +178,28 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
                 }
             }
         }
+
+        for (const Anime::Studio& studio : anime.studios) {
+            studioTable.setFilter( QString("studioId = %1").arg(studio.studioId) );
+            studioTable.select();
+
+            if (studioTable.rowCount() == 0 ) {
+                QSqlRecord newStudioRecord;
+
+                newStudioRecord.setValue("studioId", studio.studioId);
+                newStudioRecord.setValue("studioName", studio.studioName);
+
+                studioTable.setRecord(0, newStudioRecord);
+
+                if (!studioTable.submitAll()) {
+                    qDebug() << "Failed to update Studio:" << studioTable.lastError();
+                }
+
+                else {
+                    qDebug() << "Updated entry for Studio ID:" << studio.studioId << " " << studio.studioName;
+                }
+            }
+        }
     }
 
     // Reset filter after the operation (necessary?)
@@ -178,6 +208,8 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
 
     entryTable.setFilter("");
     entryTable.select();
+
+    return true;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::insertAnimeGenre(QSqlTableModel& animeGenreTable, const Anime& anime, const QString& genre) {
