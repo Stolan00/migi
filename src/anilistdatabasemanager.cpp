@@ -7,76 +7,51 @@ AnilistDatabaseManager::AnilistDatabaseManager()
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
-    QList<QHash<QString, QVariant>> mediaValuesList;
-    QList<QHash<QString, QVariant>> myInfoValuesList;
-    QList<QHash<QString, QVariant>> animeGenreList;
-    QList<QHash<QString, QVariant>> studioList;
-    QList<QHash<QString, QVariant>> animeStudioList;
+    QSqlTableModel animeTable;
+    animeTable.setTable("Anime");
+    animeTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
-    QSet<int> studioSet;
-    QSet<QString> animeStudioSet;
+    QSqlTableModel entryTable;
+    entryTable.setTable("Entry");
+    entryTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
-    for (const Anime& anime : mediaList) {
-        mediaValuesList.append(anime.asHash());
-        myInfoValuesList.append(anime.myInfoAsHash());
+    QSqlTableModel animeGenreTable;
+    animeGenreTable.setTable("AnimeGenre");
+    animeGenreTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
-        for (const QString& genre : anime.genres) {
-            QHash<QString, QVariant> animeGenre {
-                { "genreId", anime.getGenreIndex(genre) },
-                { "animeId", anime.id }
-            };
-            animeGenreList.append(animeGenre);
-        }
-
-        for (const Anime::Studio& studio : anime.studios) {
-            int studioKey = studio.studioId;
-            QString animeStudioKey = QString("%1-%2").arg(anime.id).arg(studio.studioId);
-
-            if (!studioSet.contains(studioKey)) {
-                QHash<QString, QVariant> studioHash {
-                    { "studioId", studio.studioId },
-                    { "studioName", studio.studioName },
-                    { "isMain", studio.isMain }
-                };
-                studioList.append(studioHash);
-                studioSet.insert(studioKey);
-            }
-
-            if (!animeStudioSet.contains(animeStudioKey)) {
-                QHash<QString, QVariant> animeStudio {
-                    { "studioId", studio.studioId },
-                    { "animeId", anime.id },
-                    { "isMain", studio.isMain }
-                };
-                animeStudioList.append(animeStudio);
-                animeStudioSet.insert(animeStudioKey);
-            } else {
-                qDebug() << "DUPLICATE FOUND" << animeStudioKey;
-            }
-        }
-    }
+    QSqlTableModel studioTable;
+    studioTable.setTable("Studio");
+    studioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
     m_dbManager.executeSqlScript(toString(AppResourceKey::SQLPopulateTables));
 
-    if ( !m_dbManager.bulkInsertIntoTable("Anime", mediaValuesList) ) {
-        qDebug() << "Bulk insert failed.";
+    if (!animeTable.select() || !entryTable.select() || !animeGenreTable.select() || !studioTable.select()) {
+        qDebug() << "Failed to select one or more tables.";
+        return;
     }
 
-    if ( !m_dbManager.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
-        qDebug() << "Bulk insert failed.";
+    for (const Anime& anime : mediaList) {
+        insertAnime(animeTable, anime);
+        insertEntry(entryTable, anime);
+        for (const QString& genre : anime.genres) {
+            insertAnimeGenre(animeGenreTable, anime, genre);
+        }
+        insertStudios(studioTable, anime);
     }
 
-    if ( !m_dbManager.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
-        qDebug() << "Bulk insert failed.";
+    if (!animeTable.submitAll()) {
+        qDebug() << "Failed to submit all Anime records:" << animeTable.lastError();
     }
-
-    if ( !m_dbManager.bulkInsertIntoTable("Studio", studioList) ) {
-        qDebug() << "Bulk insert failed.";
+    if (!entryTable.submitAll()) {
+        qDebug() << "Failed to submit all Entry records:" << entryTable.lastError();
     }
-
-    if ( !m_dbManager.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
-        qDebug() << "Bulk insert failed.";
+    if (!animeGenreTable.submitAll()) {
+        qDebug() << "Failed to submit all AnimeGenre records:" << animeGenreTable.lastError();
     }
+    if (!studioTable.submitAll()) {
+        qDebug() << "Failed to submit all Studio records:" << studioTable.lastError();
+    }
+    qDebug() << "DONE";
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
@@ -109,6 +84,63 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
     }
 
     return true;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::insertAnime(QSqlTableModel &animeTable, const Anime &anime) {
+    QSqlRecord newAnimeRecord = animeTable.record();
+    auto animeInfo = anime.asHash();
+
+    for (auto it = animeInfo.cbegin(); it != animeInfo.cend(); ++it) {
+        newAnimeRecord.setValue(it.key(), it.value());
+    }
+
+    if (!animeTable.insertRecord(-1, newAnimeRecord)) {
+        qDebug() << "Failed to insert Anime record:" << animeTable.lastError();
+    } else {
+        qDebug() << "Inserted record for Anime ID:" << anime.id;
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::insertEntry(QSqlTableModel &entryTable, const Anime &anime) {
+    QSqlRecord newEntryRecord = entryTable.record();
+    auto entryInfo = anime.myInfoAsHash();
+
+    for (auto it = entryInfo.cbegin(); it != entryInfo.cend(); ++it) {
+        newEntryRecord.setValue(it.key(), it.value());
+    }
+
+    if (!entryTable.insertRecord(-1, newEntryRecord)) {
+        qDebug() << "Failed to insert Entry record:" << entryTable.lastError();
+    } else {
+        qDebug() << "Inserted record for Entry ID:" << anime.id;
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::insertStudios(QSqlTableModel &studioTable, const Anime &anime) {
+    for (const Anime::Studio& studio : anime.studios) {
+        // Set filter to check if the studio already exists
+        studioTable.setFilter(QString("studioId = %1").arg(studio.studioId));
+        studioTable.select();
+
+        if (studioTable.rowCount() == 0) {
+            // Studio does not exist, proceed with insertion
+            QSqlRecord newStudioRecord = studioTable.record();
+            newStudioRecord.setValue("studioId", studio.studioId);
+            newStudioRecord.setValue("studioName", studio.studioName);
+
+            if (!studioTable.insertRecord(-1, newStudioRecord)) {
+                qDebug() << "Failed to insert Studio record:" << studioTable.lastError();
+            } else {
+                qDebug() << "Inserted record for Studio ID:" << studio.studioId << " " << studio.studioName;
+            }
+        } else {
+            qDebug() << "Studio already exists for studioId:" << studio.studioId;
+        }
+
+        // Clear the filter after checking
+        studioTable.setFilter("");
+        studioTable.select();
+    }
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::updateAnime(QSqlTableModel &animeTable, const Anime &anime) {
