@@ -5,7 +5,7 @@ Anime::Anime() {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 Anime::Anime(const QJsonObject jsonValues) {
-    bool isEntry = jsonValues.contains("media");
+    bool isEntry = jsonValues.contains("media"); //TODO: need more checks here
 
     QJsonObject animeValues;
 

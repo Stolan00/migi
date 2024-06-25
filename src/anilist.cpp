@@ -8,8 +8,8 @@
 Anilist::Anilist(QObject *parent) : QObject(parent){
     connectSignals();
     initializeAccountInfo();
-    updateDatabase();
-    //populateDatabase(); // For now I'm doing this instead of checking for updates manually
+    //updateDatabase();
+    populateDatabase(); // For now I'm doing this instead of checking for updates manually
     qDebug() << "DONE";
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -200,7 +200,6 @@ void Anilist::compareEntries(const QList<Anime>& mediaList) {
 
     for(const auto& media : mediaList) {
         QString findEntryQuery = QString("SELECT anilistModified FROM Entry WHERE Entry.mediaId = %1").arg(media.id);
-
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -304,122 +303,11 @@ NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool aut
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::updateListsInDB(const QList<Anime>& mediaList) {
-    QSqlTableModel animeTable;
-    animeTable.setTable("Anime");
-
-    if (!animeTable.select()) {
-        qDebug() << "COULD NOT SELECT ANIME TABLE";
-        return;
-    }
-
-    // Loop over mediaList
-    for (const Anime& anime : mediaList) {
-        // Set filter to find the corresponding entry in the Anime table
-        animeTable.setFilter(QString("Id = %1").arg(anime.id));
-        animeTable.select();  // Re-select to apply the filter
-
-        if (animeTable.rowCount() > 0) {
-            QSqlRecord record = animeTable.record(0);  // Get the first (and only) record
-
-            // Compare anilistModified values
-            int dbAnilistModified = record.value("anilistModified").toInt();
-            if (anime.anilistModified > dbAnilistModified) {
-                qDebug() << "WOULD HAVE UPDATED ENTRY: " << anime.id << " " << anime.titleRomaji;
-                //record.setValue("anilistModified", anime.anilistModified);
-                // Set other fields as necessary
-                // Example: record.setValue("title", anime.title);
-                animeTable.setRecord(0, record);
-                // if (!animeTable.submitAll()) {
-                //     qDebug() << "Failed to update record:" << animeTable.lastError();
-                // } else {
-                //     qDebug() << "Updated record for Anime ID:" << anime.id;
-                // }
-            }
-        } else {
-            // Handle case where the entry is not found in the table
-            qDebug() << "Anime ID not found in the table:" << anime.id;
-        }
-    }
-
-    // Reset filter after the operation
-    animeTable.setFilter("");
-    animeTable.select();
+    m_db.updateDatabase(mediaList);
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
-// TODO: use modifiedAt from Anilist for list entries to compare against local database and only update
-//       as-needed
 void Anilist::addListsToDB(const QList<Anime> &mediaList) {
-    QList<QHash<QString, QVariant>> mediaValuesList;
-    QList<QHash<QString, QVariant>> myInfoValuesList;
-    QList<QHash<QString, QVariant>> animeGenreList;
-    QList<QHash<QString, QVariant>> studioList;
-    QList<QHash<QString, QVariant>> animeStudioList;
-
-    QSet<int> studioSet;
-    QSet<QString> animeStudioSet;
-
-    for (const Anime& anime : mediaList) {
-        mediaValuesList.append(anime.asHash());
-        myInfoValuesList.append(anime.myInfoAsHash());
-
-        for (const QString& genre : anime.genres) {
-            QHash<QString, QVariant> animeGenre {
-                { "genreId", anime.getGenreIndex(genre) },
-                { "animeId", anime.id }
-            };
-            animeGenreList.append(animeGenre);
-        }
-
-        for (const Anime::Studio& studio : anime.studios) {
-            int studioKey = studio.studioId;
-            QString animeStudioKey = QString("%1-%2").arg(anime.id).arg(studio.studioId);
-
-            if (!studioSet.contains(studioKey)) {
-                QHash<QString, QVariant> studioHash {
-                    { "studioId", studio.studioId },
-                    { "studioName", studio.studioName },
-                    { "isMain", studio.isMain }
-                };
-                studioList.append(studioHash);
-                studioSet.insert(studioKey);
-            }
-
-            if (!animeStudioSet.contains(animeStudioKey)) {
-                QHash<QString, QVariant> animeStudio {
-                    { "studioId", studio.studioId },
-                    { "animeId", anime.id },
-                    { "isMain", studio.isMain }
-                };
-                animeStudioList.append(animeStudio);
-                animeStudioSet.insert(animeStudioKey);
-            } else {
-                qDebug() << "DUPLICATE FOUND" << animeStudioKey;
-            }
-        }
-    }
-
-    m_dbManager.executeSqlScript(toString(AppResourceKey::SQLPopulateTables));
-
-    if ( !m_dbManager.bulkInsertIntoTable("Anime", mediaValuesList) ) {
-        qDebug() << "Bulk insert failed.";
-    }
-
-    if ( !m_dbManager.bulkInsertIntoTable("Entry", myInfoValuesList) ) {
-        qDebug() << "Bulk insert failed.";
-    }
-
-    if ( !m_dbManager.bulkInsertIntoTable("AnimeGenre", animeGenreList) ) {
-        qDebug() << "Bulk insert failed.";
-    }
-
-    if ( !m_dbManager.bulkInsertIntoTable("Studio", studioList) ) {
-        qDebug() << "Bulk insert failed.";
-    }
-
-    if ( !m_dbManager.bulkInsertIntoTable("AnimeStudio", animeStudioList) ) {
-        qDebug() << "Bulk insert failed.";
-    }
+    m_db.addListsToDB(mediaList);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 QString Anilist::getAnimeImage(int id) {
@@ -441,7 +329,7 @@ void Anilist::writeAnimeToDatabase(const Anime& entry) {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::executeSQLScripts() {
-    m_dbManager.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
+    //m_dbManager.executeSqlScript(toString(AppResourceKey::CreateModifiedTrigger));
 }
 // --------------------------------------------------------------------------------------------------------------------------
 //TODO: singleton? member?

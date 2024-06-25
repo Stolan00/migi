@@ -5,6 +5,7 @@
 #include "databasemanager.h"
 #include <QObject>
 #include "resources.h"
+#include "assets/anilistdatabasemanager.h"
 #include "settings.h"
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
@@ -68,8 +69,9 @@ private:
     void openDatabaseConnection();
 
     // Attributes
+    AnilistDatabaseManager m_db;
+
     NetworkManager& m_netRequest = NetworkManager::instance();
-    DatabaseManager& m_dbManager = DatabaseManager::instance();
 
     QUrl m_anilistUrl = QUrl("https://graphql.anilist.co");
     QUrl m_aniListAuthUrl = QUrl("https://anilist.co/api/v2/oauth/authorize");

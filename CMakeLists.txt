@@ -26,6 +26,7 @@ qt_add_qml_module(appanilist_project
         src/QML/IconButton.qml
     SOURCES
         src/anime.cpp
+        src/anilistdatabasemanager.cpp
         src/animelistmodel.cpp
         src/animedetailmodel.cpp
         src/networkmanager.cpp
@@ -39,6 +40,7 @@ qt_add_qml_module(appanilist_project
         src/databasemanager.cpp
 
         assets/anime.h
+        assets/anilistdatabasemanager.h
         assets/animelistmodel.h
         assets/animedetailmodel.h
         assets/networkmanager.h
