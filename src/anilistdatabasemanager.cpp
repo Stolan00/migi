@@ -96,120 +96,107 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
     studioTable.setTable("Studio");
     studioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
-    QSqlTableModel animeStudioTable;
-    animeStudioTable.setTable("Studio");
-    animeStudioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
-
     if (!animeTable.select()) {
         qDebug() << "COULD NOT SELECT ANIME TABLE";
         return false;
     }
 
-    // Loop over mediaList
     for (const Anime& anime : mediaList) {
+        updateAnime(animeTable, anime);
+        updateEntry(entryTable, anime);
+        updateAnimeGenres(animeGenreTable, anime);
+        updateStudios(studioTable, anime);
+    }
 
-        // Set filter to find the corresponding entry in the Anime table
-        animeTable.setFilter(QString("id = %1").arg(anime.id));
-        animeTable.select();  // Re-select to apply the filter
+    return true;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::updateAnime(QSqlTableModel &animeTable, const Anime &anime) {
+    animeTable.setFilter(QString("id = %1").arg(anime.id));
+    animeTable.select();
 
-        entryTable.setFilter(QString("mediaId = %1").arg(anime.id));
-        entryTable.select();
+    if (animeTable.rowCount() > 0) {
+        QSqlRecord animeRecord = animeTable.record(0);
+        int dbAnilistModified = animeRecord.value("anilistModified").toInt();
+        if (anime.anilistModified > dbAnilistModified) {
+            qDebug() << "UPDATING ANIME: " << anime.id << " " << anime.titleRomaji;
+            auto animeInfo = anime.asHash();
 
-        if (animeTable.rowCount() > 0) {
-            QSqlRecord animeRecord = animeTable.record(0);  // Get the first (and only) record
-
-            // Compare anilistModified values
-            int dbAnilistModified = animeRecord.value("anilistModified").toInt();
-            if (anime.anilistModified > dbAnilistModified) {
-                qDebug() << "UPDATING ANIME: " << anime.id << " " << anime.titleRomaji;
-                auto animeInfo = anime.asHash();
-
-                for (auto it = animeInfo.cbegin(); it != animeInfo.cend(); ++it) {
-                    animeRecord.setValue(it.key(), it.value());
-                }
-
-                animeTable.setRecord(0, animeRecord);
-
-                if (!animeTable.submitAll()) {
-                    qDebug() << "Failed to update record:" << animeTable.lastError();
-                } else {
-                    qDebug() << "Updated record for Anime ID:" << anime.id;
-                }
+            for (auto it = animeInfo.cbegin(); it != animeInfo.cend(); ++it) {
+                animeRecord.setValue(it.key(), it.value());
             }
-        } else {
-            // Handle case where the entry is not found in the table
-            qDebug() << "Anime ID not found in the table:" << anime.id;
-        }
 
-        for (const QString& genre : anime.genres) {
-            QString animeGenreFilter = QString("animeId = %1 AND genreId = %2").arg(anime.id).arg(anime.getGenreIndex(genre));
+            animeTable.setRecord(0, animeRecord);
 
-            animeGenreTable.setFilter(animeGenreFilter);
-
-            animeGenreTable.select();
-
-            if (animeGenreTable.rowCount() == 0) {
-                insertAnimeGenre(animeGenreTable, anime, genre);
+            if (!animeTable.submitAll()) {
+                qDebug() << "Failed to update record:" << animeTable.lastError();
+            } else {
+                qDebug() << "Updated record for Anime ID:" << anime.id;
             }
         }
+    } else {
+        qDebug() << "Anime ID not found in the table:" << anime.id;
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::updateEntry(QSqlTableModel &entryTable, const Anime &anime) {
+    entryTable.setFilter(QString("mediaId = %1").arg(anime.id));
+    entryTable.select();
 
-        if (entryTable.rowCount() > 0) {
-            QSqlRecord entryRecord = entryTable.record(0);
+    if (entryTable.rowCount() > 0) {
+        QSqlRecord entryRecord = entryTable.record(0);
+        int dbAniListEntryModified = entryRecord.value("anilistModified").toInt();
 
-            int dbAniListEntryModified = entryRecord.value("anilistModified").toInt();
+        if (anime.myInfo.anilistModified > dbAniListEntryModified) {
+            qDebug() << "UPDATING ENTRY: " << " " << entryRecord.value("id") << " " << anime.titleRomaji;
+            auto entryInfo = anime.myInfoAsHash();
 
-            if(anime.myInfo.anilistModified > dbAniListEntryModified && anime.id == 20666) {
-                qDebug() << "UPATING ENTRY: " << " " << entryRecord.value("id") << " " << anime.titleRomaji;
-
-                auto entryInfo = anime.myInfoAsHash();
-
-                for (auto it = entryInfo.cbegin(); it != entryInfo.cend(); ++it) {
-                    entryRecord.setValue(it.key(), it.value());
-                }
-
-                entryTable.setRecord(0, entryRecord);
-
-                if (!entryTable.submitAll()) {
-                    qDebug() << "Failed to update entry:" << entryTable.lastError();
-                }
-
-                else {
-                    qDebug() << "Updated entry for Entry ID:" << anime.id;
-                }
+            for (auto it = entryInfo.cbegin(); it != entryInfo.cend(); ++it) {
+                entryRecord.setValue(it.key(), it.value());
             }
-        }
 
-        for (const Anime::Studio& studio : anime.studios) {
-            studioTable.setFilter( QString("studioId = %1").arg(studio.studioId) );
-            studioTable.select();
+            entryTable.setRecord(0, entryRecord);
 
-            if (studioTable.rowCount() == 0 ) {
-                QSqlRecord newStudioRecord;
-
-                newStudioRecord.setValue("studioId", studio.studioId);
-                newStudioRecord.setValue("studioName", studio.studioName);
-
-                studioTable.setRecord(0, newStudioRecord);
-
-                if (!studioTable.submitAll()) {
-                    qDebug() << "Failed to update Studio:" << studioTable.lastError();
-                }
-
-                else {
-                    qDebug() << "Updated entry for Studio ID:" << studio.studioId << " " << studio.studioName;
-                }
+            if (!entryTable.submitAll()) {
+                qDebug() << "Failed to update entry:" << entryTable.lastError();
+            } else {
+                qDebug() << "Updated entry for Entry ID:" << anime.id;
             }
         }
     }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::updateAnimeGenres(QSqlTableModel &animeGenreTable, const Anime &anime) {
+    for (const QString& genre : anime.genres) {
+        QString animeGenreFilter = QString("animeId = %1 AND genreId = %2").arg(anime.id).arg(anime.getGenreIndex(genre));
+        animeGenreTable.setFilter(animeGenreFilter);
+        animeGenreTable.select();
 
-    // Reset filter after the operation (necessary?)
-    animeTable.setFilter("");
-    animeTable.select();
+        if (animeGenreTable.rowCount() == 0) {
+            insertAnimeGenre(animeGenreTable, anime, genre);
+        }
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::updateStudios(QSqlTableModel &studioTable, const Anime &anime) {
+    for (const Anime::Studio& studio : anime.studios) {
+        studioTable.setFilter(QString("studioId = %1").arg(studio.studioId));
+        studioTable.select();
 
-    entryTable.setFilter("");
-    entryTable.select();
+        if (studioTable.rowCount() == 0) {
+            QSqlRecord newStudioRecord;
+            newStudioRecord.setValue("studioId", studio.studioId);
+            newStudioRecord.setValue("studioName", studio.studioName);
 
-    return true;
+            studioTable.setRecord(0, newStudioRecord);
+
+            if (!studioTable.submitAll()) {
+                qDebug() << "Failed to update Studio:" << studioTable.lastError();
+            } else {
+                qDebug() << "Updated entry for Studio ID:" << studio.studioId << " " << studio.studioName;
+            }
+        }
+    }
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::insertAnimeGenre(QSqlTableModel& animeGenreTable, const Anime& anime, const QString& genre) {

@@ -15,6 +15,11 @@ class AnilistDatabaseManager
         void batchInsertAnimeGenres(QSqlTableModel& animeGenreTable, const QList<Anime>& animes);
 
     private:
+        void updateAnime(QSqlTableModel &animeTable, const Anime &anime);
+        void updateEntry(QSqlTableModel &entryTable, const Anime &anime);
+        void updateAnimeGenres(QSqlTableModel &animeGenreTable, const Anime &anime);
+        void updateStudios(QSqlTableModel &studioTable, const Anime &anime);
+
         QSqlDatabase m_db;
         DatabaseManager& m_dbManager = DatabaseManager::instance(); //TODO: DELETE
 };
