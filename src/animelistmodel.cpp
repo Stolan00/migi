@@ -21,7 +21,6 @@ void AnimeListModel::createTable()
         return;
     }
 
-    qDebug() << "DIDNT RETURN";
     if (!query.exec(
             R"(
             CREATE VIEW IF NOT EXISTS AnimeListView AS
@@ -92,7 +91,7 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[TitleRomajiRole] = "titleRomaji";
     roles[ProgressRole] = "progress";
     roles[ScoreRole] = "score";
-    roles[FormatRole] = "format";
+    roles[FormatRole] = "type";
     roles[StatusRole] = "status";
     roles[SortTitleRole] = "sortTitle";
 
@@ -118,7 +117,7 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
     else if (role == ScoreRole)
         return record.value("score");
     else if (role == FormatRole)
-        return record.value("format");
+        return record.value("type");
     else if (role == StatusRole)
         return record.value("status");
     else if (role == SortTitleRole)

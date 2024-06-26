@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import com.migi.models
+import com.migi.models // Assuming this is where AnimeListModel is defined
 
 Item {
     id: animeListContainer
@@ -18,7 +18,7 @@ Item {
 
         delegate: Loader {
             width: animeListContainer.width
-            height: 100
+            height: 150 // Adjust height according to your needs
             sourceComponent: animeItemDelegate
             property var modelData: model
         }
@@ -27,12 +27,13 @@ Item {
         maximumFlickVelocity: 3000
     }
 
+    // Define animeItemDelegate component here
     Component {
         id: animeItemDelegate
 
         Item {
             width: animeListContainer.width
-            height: 100
+            height: 150 // Adjust height according to your needs
             Row {
                 spacing: 10
 
@@ -43,16 +44,42 @@ Item {
                     source: modelData && modelData.anime_id ? "file:///" + getAnimeImageSource(modelData.anime_id) : ""
                 }
 
-                Text {
-                    text: modelData ? (modelData.titleEnglish && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji) : ""
-                    wrapMode: Text.WordWrap
-                    width: parent.width - 70
-                    font.family: 'Helvetica'
+                Column {
+                    spacing: 5
+
+                    Text {
+                        text: modelData ? (modelData.titleEnglish && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji) : ""
+                        wrapMode: Text.WordWrap
+                        font.family: 'Helvetica'
+                    }
+
+                    Row {
+                        spacing: 10
+
+                        Text {
+                            text: modelData ? "Progress: " +  modelData.progress : ""
+                            wrapMode: Text.WordWrap
+                            font.family: 'Helvetica'
+                        }
+
+                        Text {
+                            text: modelData ? "Score: " +  modelData.score : ""
+                            wrapMode: Text.WordWrap
+                            font.family: 'Helvetica'
+                        }
+
+                        Text {
+                            text: modelData ? modelData.type : ""
+                            wrapMode: Text.WordWrap
+                            font.family: 'Helvetica'
+                        }
+                    }
                 }
             }
         }
     }
 
+    // Functions and logic specific to your application
     function setStatusFilter(id) {
         animeListModel.setStatusFilter(id)
     }

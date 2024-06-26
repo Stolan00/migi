@@ -3,6 +3,7 @@
 #include <QtSql>
 #include "assets/anime.h"
 #include "assets/databasemanager.h"
+#include "filewriter.h"
 
 class AnilistDatabaseManager
 {

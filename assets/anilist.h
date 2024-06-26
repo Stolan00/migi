@@ -30,7 +30,7 @@ signals:
     void databaseReady();
 
 public slots:
-    void searchAnime();
+    void searchAnime(int id, std::function<void(const QJsonObject&)> callback);
     void getViewerId();
     //void getViewerList(); //should not be void eventually
     void getViewerLists();

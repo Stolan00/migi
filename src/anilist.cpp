@@ -13,34 +13,18 @@ Anilist::Anilist(QObject *parent) : QObject(parent){
     qDebug() << "DONE";
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::searchAnime() {
-    //connect(&m_netRequest, &NetworkManager::responseReceived, this, &Anilist::responseReceived);
-
-    QJsonObject variables;
-    variables["id"] = "486"; //TODO: May want to add a constructSearch function later or something that returns json qbytearray
-
+void Anilist::searchAnime(int id, std::function<void(const QJsonObject&)> callback) {
     Resources resources;
-
-    QString queryText   = resources.readResource( AppResourceKey::ALQueryMedia ).toString();
-    QString mediaFields = resources.readResource( AppResourceKey::ALQueryMediaFields ).toString();
-
+    QString queryText = resources.readResource(AppResourceKey::ALQueryMedia).toString();
+    QString mediaFields = resources.readResource(AppResourceKey::ALQueryMLFields).toString();
     queryText.replace("{mediaFields}", mediaFields);
 
-    QJsonObject query;
-    query["query"] = queryText;
+    QJsonObject variables;
+    variables["id"] = id;
 
-    query["variables"] = variables;
+    bool isAuthRequest = true;
 
-    QJsonDocument document(query);
-    QByteArray postData = document.toJson();
-
-    QJsonObject headers {
-        {"Content-Type", "application/json"},
-        {"Accept", "application/json"},
-        {"Authorization", m_settings.value( AppSettingsKey::AccountAnilistToken ).toJsonValue() }
-    };
-
-    //QNetworkReply* reply = m_netRequest.sendPostRequest(postData, m_anilistUrl, headers);
+    sendAnilistRequest(queryText, isAuthRequest, variables, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::configureOAuth2() {
@@ -314,6 +298,19 @@ QString Anilist::getAnimeImage(int id) {
     FileWriter files;
     QString imageName = QString("images/%1.png").arg(id);
     QString imagePath = QString(files.getAppDataPath(imageName));
+
+    if (!QFile::exists(imagePath)) {
+        // Image file does not exist, initiate search
+        searchAnime(id, [this, id, imagePath](const QJsonObject& animeData) -> void {
+            Anime animeObj(animeData);
+
+            qDebug() << "Received anime data for ID:" << id;
+            qDebug() << "Anime image link:" << animeObj.imageLink;
+
+            // Example: Download and save image
+            // downloadAndSaveImage(animeObj.imageLink, imagePath);
+        });
+    }
 
     return imagePath;
 }

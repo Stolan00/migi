@@ -82,7 +82,6 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
 
     qDebug() << "DONE";
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
     QSqlDatabase db = QSqlDatabase::database();
@@ -137,7 +136,6 @@ bool AnilistDatabaseManager::updateDatabase(const QList<Anime>& mediaList) {
 
     return true;
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::insertAnime(QSqlTableModel &animeTable, const Anime &anime) {
     QSqlRecord newAnimeRecord = animeTable.record();
@@ -302,7 +300,6 @@ void AnilistDatabaseManager::updateAnime(QSqlTableModel &animeTable, const Anime
         qDebug() << "Anime ID not found in the table:" << anime.id;
     }
 }
-
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::updateEntry(QSqlTableModel &entryTable, const Anime &anime) {
     entryTable.setFilter(QString("mediaId = %1").arg(anime.id));
