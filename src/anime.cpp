@@ -57,6 +57,14 @@ Anime::Anime(const QJsonObject jsonValues) {
     QJsonObject animeImage = animeValues["coverImage"].toObject();
     imageLink = animeImage["large"].toString();
 
+    bannerImageLink = animeValues["bannerImage"].toString();
+
+    QJsonArray animeSynonyms = animeValues["synonyms"].toArray();
+
+    for (const QJsonValue &synonym : animeSynonyms) {
+        synonyms.append( synonym.toString() );
+    }
+
     episodes = animeValues["episodes"].toInt();
 
     status = toMediaStatusEnum( animeValues["status"].toString() );
@@ -104,6 +112,7 @@ QHash<QString, QVariant> Anime::asHash() const {
         { "episodes",     episodes     },
         { "seasonYear",   seasonYear   },
         { "anilistModified", anilistModified },
+        { "bannerImageLink",    bannerImageLink },
         { "mediaStatus", static_cast<int>(status) },
         { "mediaFormat", static_cast<int>(format) },
         { "season", static_cast<int>(season) },

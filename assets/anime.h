@@ -100,8 +100,11 @@ public:
     QString titleEnglish;
     QString titleNative;
 
+    QList<QString> synonyms;
+
     QString synopsis;
     QString imageLink;
+    QString bannerImageLink;
 
     int seasonYear;
     MediaSeason season;

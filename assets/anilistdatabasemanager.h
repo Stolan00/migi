@@ -27,6 +27,7 @@ public:
         void insertStudio(QSqlTableModel& studioTable, const Anime::Studio &studio);
         void insertAnimeStudio(QSqlTableModel& animeStudioTable, int animeId, const Anime::Studio &studio);
         void insertAnimeSeason(QSqlTableModel& animeSeasonTable, const Anime& anime);
+        void insertAnimeSynonym(QSqlTableModel& animeSynonymTable, const Anime& anime, const QString &synonym);
 
         QSqlDatabase m_db;
         DatabaseManager& m_dbManager = DatabaseManager::instance(); //TODO: DELETE

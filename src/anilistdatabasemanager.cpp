@@ -27,6 +27,10 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
     animeStudioTable.setTable("AnimeStudio");
     animeStudioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
+    QSqlTableModel animeSynonymTable;
+    animeSynonymTable.setTable("AnimeSynonym");
+    animeSynonymTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
+
     QSqlTableModel animeSeasonTable;
     animeSeasonTable.setTable("AnimeSeason");
     animeSeasonTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
@@ -54,6 +58,11 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
             for (const QString& genre : anime.genres) {
                 insertAnimeGenre(animeGenreTable, anime, genre);
             }
+
+            for (const QString& synonym : anime.synonyms) {
+                insertAnimeSynonym(animeSynonymTable, anime, synonym);
+            }
+
             for (const Anime::Studio& studio : anime.studios) {
                 insertStudio(studioTable, studio);
 
@@ -80,6 +89,10 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
         if (!animeSeasonTable.submitAll()) {
             qDebug() << "Failed to submit all Season records:" << animeSeasonTable.lastError();
             throw std::runtime_error("Failed to submit Season records");
+        }
+        if (!animeSynonymTable.submitAll()) {
+            qDebug() << "Failed to submit all synonym records:" << animeSynonymTable.lastError();
+            throw std::runtime_error("Failed to submit synonym records");
         }
 
 
@@ -162,7 +175,7 @@ void AnilistDatabaseManager::insertAnime(QSqlTableModel &animeTable, const Anime
         qDebug() << "Failed to insert Anime record:" << animeTable.lastError();
         throw std::runtime_error("Database insertion error");
     } else {
-        qDebug() << "Inserted record for Anime ID:" << anime.id;
+        //qDebug() << "Inserted record for Anime ID:" << anime.id;
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -178,7 +191,7 @@ void AnilistDatabaseManager::insertEntry(QSqlTableModel &entryTable, const Anime
         qDebug() << "Failed to insert Entry record:" << entryTable.lastError();
         throw std::runtime_error("Database insertion error");
     } else {
-        qDebug() << "Inserted record for Entry ID:" << anime.id;
+        //qDebug() << "Inserted record for Entry ID:" << anime.id;
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -202,7 +215,7 @@ void AnilistDatabaseManager::insertStudio(QSqlTableModel &studioTable, const Ani
             qDebug() << "Failed to insert Studio record:" << studioTable.lastError();
             throw std::runtime_error("Database insertion error");
         } else {
-            qDebug() << "Inserted record for Studio ID:" << studio.studioId << studio.studioName;
+            //qDebug() << "Inserted record for Studio ID:" << studio.studioId << studio.studioName;
         }
 
         // Submit changes immediately after insertion
@@ -228,11 +241,11 @@ void AnilistDatabaseManager::insertAnimeStudio(QSqlTableModel &animeStudioTable,
                                    .arg(studio.studioId));
 
     if (!animeStudioTable.select()) {
-        qDebug() << "Failed to select AnimeStudio table with filter for animeId:" << animeId << "and studioId:" << studio.studioId << animeStudioTable.lastError();
+       // qDebug() << "Failed to select AnimeStudio table with filter for animeId:" << animeId << "and studioId:" << studio.studioId << animeStudioTable.lastError();
         return;
     }
 
-    qDebug() << "Row count after select with filter for animeId:" << animeId << "and studioId:" << studio.studioId << animeStudioTable.rowCount();
+  //  qDebug() << "Row count after select with filter for animeId:" << animeId << "and studioId:" << studio.studioId << animeStudioTable.rowCount();
 
     if (animeStudioTable.rowCount() == 0) {
         // Anime-Studio relationship does not exist, proceed with insertion
@@ -242,27 +255,28 @@ void AnilistDatabaseManager::insertAnimeStudio(QSqlTableModel &animeStudioTable,
         newAnimeStudioRecord.setValue("isMain", studio.isMain);
 
         if (!animeStudioTable.insertRecord(-1, newAnimeStudioRecord)) {
-            qDebug() << "Failed to insert AnimeStudio record:" << animeStudioTable.lastError();
+           // qDebug() << "Failed to insert AnimeStudio record:" << animeStudioTable.lastError();
             throw std::runtime_error("Database insertion error");
         } else {
-            qDebug() << "Inserted record for AnimeStudio with animeId:" << animeId << "and studioId:" << studio.studioId;
+           // qDebug() << "Inserted record for AnimeStudio with animeId:" << animeId << "and studioId:" << studio.studioId;
         }
 
         // Submit changes immediately after insertion
         if (!animeStudioTable.submitAll()) {
-            qDebug() << "Failed to submit changes to AnimeStudio table:" << animeStudioTable.lastError();
+          //  qDebug() << "Failed to submit changes to AnimeStudio table:" << animeStudioTable.lastError();
             throw std::runtime_error("Database submission error");
         }
     } else {
-        qDebug() << "AnimeStudio relationship already exists for animeId:" << animeId << "and studioId:" << studio.studioId;
+      //  qDebug() << "AnimeStudio relationship already exists for animeId:" << animeId << "and studioId:" << studio.studioId;
     }
 
     // Clear the filter and refresh table state
     animeStudioTable.setFilter("");
     if (!animeStudioTable.select()) {
-        qDebug() << "Failed to select AnimeStudio table after clearing filter:" << animeStudioTable.lastError();
+       // qDebug() << "Failed to select AnimeStudio table after clearing filter:" << animeStudioTable.lastError();
     }
 }
+// TODO: a lot of these are very similar--use template instead?
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::insertAnimeSeason(QSqlTableModel& animeSeasonTable, const Anime &anime) {
     QSqlRecord newAnimeSeasonRecord = animeSeasonTable.record();
@@ -274,7 +288,7 @@ void AnilistDatabaseManager::insertAnimeSeason(QSqlTableModel& animeSeasonTable,
         qDebug() << "Failed to insert record:" << animeSeasonTable.lastError().text();
         throw std::runtime_error("Database insertion error");
     } else {
-        qDebug() << "Inserted record for Season: for Anime ID:" << anime.id;
+        //qDebug() << "Inserted record for Season: for Anime ID:" << anime.id;
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -287,9 +301,50 @@ void AnilistDatabaseManager::insertAnimeGenre(QSqlTableModel& animeGenreTable, c
         qDebug() << "Failed to insert record:" << animeGenreTable.lastError().text();
         throw std::runtime_error("Database insertion error");
     } else {
-        qDebug() << "Inserted record for Genre ID:" << anime.getGenreIndex(genre) << " for Anime ID:" << anime.id;
+        //qDebug() << "Inserted record for Genre ID:" << anime.getGenreIndex(genre) << " for Anime ID:" << anime.id;
     }
 }
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::insertAnimeSynonym(QSqlTableModel& animeSynonymTable, const Anime& anime, const QString &synonym) {
+    // Create a filter to check for existing records with the same animeId and synonym
+    QString filter = QString("animeId = %1 AND synonym = '%2'")
+                         .arg(anime.id)
+                         .arg(synonym);
+
+    // Set the filter on the table model
+    animeSynonymTable.setFilter(filter);
+    animeSynonymTable.select();
+
+    // Check if any records exist with the same animeId and synonym
+    if (animeSynonymTable.rowCount() > 0) {
+        // Debug statement for when a duplicate is found
+        qDebug() << "Duplicate synonym found for Anime ID:" << anime.id << "Synonym:" << synonym;
+    } else {
+        // Clear the filter before inserting a new record
+        animeSynonymTable.setFilter("");
+
+        // Create a new record
+        QSqlRecord newAnimeSynonymRecord = animeSynonymTable.record();
+        newAnimeSynonymRecord.setValue("animeId", anime.id);
+        newAnimeSynonymRecord.setValue("synonym", synonym);
+
+        // Insert the new record
+        if (!animeSynonymTable.insertRecord(-1, newAnimeSynonymRecord)) {
+            qDebug() << "Failed to insert record:" << animeSynonymTable.lastError().text();
+            throw std::runtime_error("Database insertion error");
+        } else {
+            qDebug() << "Inserted record for Synonym:" << synonym << " for Anime ID:" << anime.id;
+        }
+    }
+
+    if (!animeSynonymTable.submitAll()) {
+        //  qDebug() << "Failed to submit changes to AnimeStudio table:" << animeStudioTable.lastError();
+        throw std::runtime_error("Database submission error");
+    }
+    // Clear the filter after operation
+    animeSynonymTable.setFilter("");
+}
+
 // --------------------------------------------------------------------------------------------------------------------------
 void AnilistDatabaseManager::updateAnime(QSqlTableModel &animeTable, const Anime &anime) {
     animeTable.setFilter(QString("id = %1").arg(anime.id));

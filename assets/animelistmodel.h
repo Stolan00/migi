@@ -13,6 +13,7 @@ public:
         AnimeIdRole = Qt::UserRole,
         TitleEnglishRole,
         TitleRomajiRole,
+        SynonymsRole,
         SortTitleRole,
         ProgressRole,
         ScoreRole,

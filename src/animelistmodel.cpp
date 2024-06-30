@@ -25,30 +25,38 @@ void AnimeListModel::createTable()
     if (!query.exec(
             R"(
             CREATE VIEW IF NOT EXISTS AnimeListView AS
-                        SELECT
-                            a.id AS anime_id,
-                            a.titleEnglish,
-                            a.titleRomaji,
-                            COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle,
-                            e.progress,
-                            e.score,
-                            es.statusName AS status,
-                            es.statusId,
-                            mf.formatName AS type,
-                            s.seasonName AS season,
-                            ans.seasonYear
-                        FROM
-                            Anime a
-                        JOIN
-                            Entry e ON a.id = e.mediaId
-                        JOIN
-                            MediaFormat mf ON a.mediaFormat = mf.formatId
-                        JOIN
-                            EntryStatus es ON e.status = es.statusId
-                        JOIN
-                            AnimeSeason ans ON ans.animeId = a.id
-                        JOIN
-                            Season s on s.seasonId = ans.seasonId
+            SELECT
+                a.id AS anime_id,
+                a.titleEnglish,
+                a.titleRomaji,
+                COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle,
+                ans.synonyms,
+                e.progress,
+                e.score,
+                es.statusName AS status,
+                es.statusId,
+                mf.formatName AS type,
+                s.seasonName AS season,
+                ans_season.seasonYear
+            FROM
+                Anime a
+            JOIN
+                Entry e ON a.id = e.mediaId
+            JOIN
+                MediaFormat mf ON a.mediaFormat = mf.formatId
+            JOIN
+                EntryStatus es ON e.status = es.statusId
+            JOIN
+                (SELECT animeId, GROUP_CONCAT(synonym, ';; ') AS synonyms
+                 FROM AnimeSynonym
+                 GROUP BY animeId) ans ON ans.animeId = a.id
+            JOIN
+                AnimeSeason ans_season ON ans_season.animeId = a.id
+            JOIN
+                Season s ON s.seasonId = ans_season.seasonId
+            GROUP BY
+                a.id, a.titleEnglish, a.titleRomaji, e.progress, e.score,
+                es.statusName, es.statusId, mf.formatName, s.seasonName, ans_season.seasonYear;
             )"
             )) {
         qDebug() << "QUERY FAILED: " << query.lastError().text();
@@ -105,6 +113,7 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[SortTitleRole] = "sortTitle";
     roles[SeasonRole] = "season";
     roles[SeasonYearRole] = "seasonYear";
+    roles[SynonymsRole] = "synonyms";
 
     return roles;
 }
@@ -137,7 +146,8 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("season");
     else if (role == SeasonYearRole)
         return record.value("seasonYear");
-
+    else if (role == SynonymsRole)
+        return record.value("synonyms");
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
