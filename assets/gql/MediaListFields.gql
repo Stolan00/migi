@@ -2,9 +2,11 @@ id
 status
 score(format: POINT_100)
 progress
+progressVolumes
 repeat
 private
 notes
 startedAt { year month day }
 completedAt { year month day }
 updatedAt
+createdAt

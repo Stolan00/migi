@@ -20,17 +20,26 @@ class Anilist : public QObject
     QML_SINGLETON
 
 public:
+
+    enum class RequestType {
+        PopulateDatabase,
+        UpdateDatabase,
+        FetchAnimeImage
+    };
+
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
     void writeAnimeToDatabase(const Anime &entry); //TODO: should be media eventually?
+
 
 signals:
     void requestFinished(const QJsonObject& data);
     void viewerListsReady(const QList<Anime>& mediaList);
     void databaseReady();
+    void anilistDataReceived(RequestType requestType, const QJsonObject& data);
 
 public slots:
-    void searchAnime(int id, std::function<void(const QJsonObject&)> callback);
+    void searchAnime();
     void getViewerId();
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
@@ -53,15 +62,18 @@ private:
 
 
     NetworkManager::PostRequest constructSearch(QString queryText, bool authorized = false, QJsonObject variables = {} );
-    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables = QJsonObject(), std::function<void(const QJsonObject&)> callback = [](const QJsonObject&){});
-    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback);
-    void getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback);
+    void sendAnilistRequest(const QString& queryText, bool isAuthRequest, const QJsonObject& variables, RequestType requestType);
+    void sendAnilistRequest(const QString& queryText, const bool isAuthRequest, RequestType requestType);
+    QJsonObject getSearchData(QNetworkReply* reply);
+    void handleAnilistData(RequestType requestType, const QJsonObject& data);
 
     QVariantList convertToVariantList(const QList<Anime> &mediaList);
 
     void addListsToDB(const QList<Anime>& mediaList);
     void updateListsInDB(const QList<Anime>& mediaList);
     void processViewerLists(const QJsonObject &data);
+    void fetchAnimeData(int id, RequestType requestType);
+    void handleFetchAnimeImage(const QJsonObject& animeData);
 
     void compareEntries(const QList<Anime>& mediaList);
 

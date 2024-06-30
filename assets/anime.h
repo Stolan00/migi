@@ -11,6 +11,14 @@ public:
     Anime();
     Anime(const QJsonObject jsonValues);
         //TODO: put in 'Media' ABC? (if going to allow manga)
+    enum class MediaSeason {
+        WINTER,
+        SPRING,
+        SUMMER,
+        FALL,
+        INVALID
+    };
+
     enum class MediaStatus {
         FINISHED,
         RELEASING,
@@ -95,6 +103,9 @@ public:
     QString synopsis;
     QString imageLink;
 
+    int seasonYear;
+    MediaSeason season;
+
     MediaStatus   status;
     ListEntryInfo myInfo;
     MediaFormat   format;
@@ -102,10 +113,14 @@ public:
     QStringList   genres;
     QList<Studio> studios;
 
+
+    static QString toEntryStatusString(Anime::EntryStatus status);
+
 signals:
 
 private:
     MediaStatus toMediaStatusEnum(const QString& status);
+    MediaSeason toMediaSeasonEnum(const QString& status);
     EntryStatus toEntryStatusEnum(const QString& status);
     MediaFormat toMediaFormatEnum(const QString& format);
 };

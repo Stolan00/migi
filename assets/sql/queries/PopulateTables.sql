@@ -41,3 +41,8 @@ INSERT INTO Genre (genreName) VALUES ('Slice of Life');
 INSERT INTO Genre (genreName) VALUES ('Sports');
 INSERT INTO Genre (genreName) VALUES ('Supernatural');
 INSERT INTO Genre (genreName) VALUES ('Thriller');
+
+INSERT INTO Season (seasonId, seasonName, modified) VALUES (0, 'WINTER', 0);
+INSERT INTO Season (seasonName) VALUES ('SPRING');
+INSERT INTO Season (seasonName) VALUES ('SUMMER');
+INSERT INTO Season (seasonName) VALUES ('FALL');

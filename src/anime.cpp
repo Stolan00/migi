@@ -65,6 +65,9 @@ Anime::Anime(const QJsonObject jsonValues) {
 
     format = toMediaFormatEnum( animeValues["format"].toString() );
 
+    seasonYear = animeValues["seasonYear"].toInt();
+    season = toMediaSeasonEnum( animeValues["season"].toString() );
+
     QJsonArray genreArray = animeValues["genres"].toArray();
 
     for (const QJsonValue& value : genreArray) {
@@ -99,9 +102,11 @@ QHash<QString, QVariant> Anime::asHash() const {
         { "synopsis",     synopsis     },
         { "imageLink",    imageLink    },
         { "episodes",     episodes     },
+        { "seasonYear",   seasonYear   },
         { "anilistModified", anilistModified },
         { "mediaStatus", static_cast<int>(status) },
-        { "mediaFormat", static_cast<int>(format) }
+        { "mediaFormat", static_cast<int>(format) },
+        { "season", static_cast<int>(season) },
     };
 
     return mediaValues;
@@ -153,6 +158,34 @@ Anime::EntryStatus Anime::toEntryStatusEnum(const QString& status) {
     return EntryStatus::PLANNING;
 }
 // --------------------------------------------------------------------------------------------------------------------------
+QString Anime::toEntryStatusString(Anime::EntryStatus status) {
+    switch (status) {
+    case EntryStatus::CURRENT:
+        return "CURRENT";
+    case EntryStatus::PLANNING:
+        return "PLANNING";
+    case EntryStatus::COMPLETED:
+        return "COMPLETED";
+    case EntryStatus::DROPPED:
+        return "DROPPED";
+    case EntryStatus::PAUSED:
+        return "PAUSED";
+    case EntryStatus::REPEATING:
+        return "REPEATING";
+    default:
+        return "PLANNING";  // Default case, can be adjusted if needed
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+Anime::MediaSeason Anime::toMediaSeasonEnum(const QString& status) {
+    if (status == "WINTER") return MediaSeason::WINTER;
+    if (status == "SPRING") return MediaSeason::SPRING;
+    if (status == "SUMMER") return MediaSeason::SUMMER;
+    if (status == "FALL")   return MediaSeason::FALL;
+
+    return MediaSeason::INVALID;
+}
+// --------------------------------------------------------------------------------------------------------------------------
 Anime::MediaFormat Anime::toMediaFormatEnum(const QString& format) {
     if (format == "TV")       return MediaFormat::TV;
     if (format == "TV_SHORT") return MediaFormat::TV_SHORT;
@@ -166,7 +199,7 @@ Anime::MediaFormat Anime::toMediaFormatEnum(const QString& format) {
     if (format == "ONE_SHOT") return MediaFormat::ONE_SHOT;
 
     // Default case if no match
-    return MediaFormat::TV; // or any default value you prefer
+    return MediaFormat::TV;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 int Anime::getGenreIndex(const QString& genre) const{ //TODO: probably shouldnt go here

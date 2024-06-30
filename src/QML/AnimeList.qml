@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import com.migi.models // Assuming this is where AnimeListModel is defined
+import com.migi.models
 
 Item {
     id: animeListContainer
@@ -95,6 +95,7 @@ Item {
         animeListModel.clear();
         for (var i = 0; i < animeData.length; i++) {
             animeListModel.append(animeData[i]);
+            console.log(animeData[i]);
         }
         console.log("Updated list with data: ", animeData)
     }

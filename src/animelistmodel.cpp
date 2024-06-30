@@ -1,4 +1,5 @@
 #include "assets/animelistmodel.h"
+#include "anime.h"
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::createTable()
 {
@@ -24,23 +25,30 @@ void AnimeListModel::createTable()
     if (!query.exec(
             R"(
             CREATE VIEW IF NOT EXISTS AnimeListView AS
-            SELECT
-                a.id AS anime_id,
-                a.titleEnglish,
-                a.titleRomaji,
-                e.progress,
-                e.score,
-                e.status,
-                mf.formatName as type,
-                COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle
-            FROM
-                Anime a
-            JOIN
-                Entry e ON a.id = e.mediaId
-            JOIN
-                MediaFormat mf ON a.mediaFormat = mf.formatId
-            JOIN
-                EntryStatus es ON e.status = es.statusId
+                        SELECT
+                            a.id AS anime_id,
+                            a.titleEnglish,
+                            a.titleRomaji,
+                            COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle,
+                            e.progress,
+                            e.score,
+                            es.statusName AS status,
+                            es.statusId,
+                            mf.formatName AS type,
+                            s.seasonName AS season,
+                            ans.seasonYear
+                        FROM
+                            Anime a
+                        JOIN
+                            Entry e ON a.id = e.mediaId
+                        JOIN
+                            MediaFormat mf ON a.mediaFormat = mf.formatId
+                        JOIN
+                            EntryStatus es ON e.status = es.statusId
+                        JOIN
+                            AnimeSeason ans ON ans.animeId = a.id
+                        JOIN
+                            Season s on s.seasonId = ans.seasonId
             )"
             )) {
         qDebug() << "QUERY FAILED: " << query.lastError().text();
@@ -81,6 +89,7 @@ AnimeListModel::AnimeListModel(QObject *parent)
     setTable("AnimeListView");
     setEditStrategy(QSqlTableModel::OnManualSubmit);
     select();
+    qDebug() << "Number of rows selected: " << rowCount();
     qDebug() << "ALM CREATED";
 }
 // --------------------------------------------------------------------------------------------------------------------------
@@ -94,6 +103,8 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[FormatRole] = "type";
     roles[StatusRole] = "status";
     roles[SortTitleRole] = "sortTitle";
+    roles[SeasonRole] = "season";
+    roles[SeasonYearRole] = "seasonYear";
 
     return roles;
 }
@@ -122,12 +133,18 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("status");
     else if (role == SortTitleRole)
         return record.value("sortTitle");
+    else if (role == SeasonRole)
+        return record.value("season");
+    else if (role == SeasonYearRole)
+        return record.value("seasonYear");
 
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::setStatusFilter(int statusId) {
-    setFilter(QString("status = %1").arg(statusId));
+
+    setFilter(QString("statusId = %1").arg(statusId));
+
     setSort(SortTitleRole - Qt::UserRole, Qt::AscendingOrder);
     select();
 }

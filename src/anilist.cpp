@@ -5,26 +5,28 @@
 
 #include <QDebug>
 // --------------------------------------------------------------------------------------------------------------------------
-Anilist::Anilist(QObject *parent) : QObject(parent){
+Anilist::Anilist(QObject *parent) : QObject(parent) {
     connectSignals();
     initializeAccountInfo();
-    updateDatabase();
-    //populateDatabase(); // For now I'm doing this instead of checking for updates manually
+    //updateDatabase();
+    populateDatabase(); // For now I'm doing this instead of checking for updates manually
     qDebug() << "DONE";
+
+    connect(this, &Anilist::anilistDataReceived, this, &Anilist::handleAnilistData);
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::searchAnime(int id, std::function<void(const QJsonObject&)> callback) {
-    Resources resources;
-    QString queryText = resources.readResource(AppResourceKey::ALQueryMedia).toString();
-    QString mediaFields = resources.readResource(AppResourceKey::ALQueryMLFields).toString();
-    queryText.replace("{mediaFields}", mediaFields);
+void Anilist::searchAnime() {
+    // Resources resources;
+    // QString queryText = resources.readResource(AppResourceKey::ALQueryMedia).toString();
+    // QString mediaFields = resources.readResource(AppResourceKey::ALQueryMLFields).toString();
+    // queryText.replace("{mediaFields}", mediaFields);
 
-    QJsonObject variables;
-    variables["id"] = id;
+    // QJsonObject variables;
+    // variables["id"] = id;
 
-    bool isAuthRequest = true;
+    // bool isAuthRequest = true;
 
-    sendAnilistRequest(queryText, isAuthRequest, variables, callback);
+    // sendAnilistRequest(queryText, isAuthRequest, variables, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::configureOAuth2() {
@@ -59,9 +61,7 @@ void Anilist::getViewerLists() {
 
     bool isAuthRequest = true;
 
-    sendAnilistRequest(queryText, isAuthRequest, variables, [this](const QJsonObject& data) {
-        this->processViewerLists(data);
-    });
+    sendAnilistRequest(queryText, isAuthRequest, variables, RequestType::PopulateDatabase);  // Or RequestType::UpdateDatabase as needed
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::processViewerLists(const QJsonObject& data) {
@@ -115,7 +115,7 @@ void Anilist::getViewerId() {
         }
     };
 
-    sendAnilistRequest(queryText, isAuthRequest, callback);
+    //sendAnilistRequest(queryText, isAuthRequest, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 bool Anilist::onPopulateDatabaseReady(const QList<Anime> &mediaList) {
@@ -210,29 +210,50 @@ void Anilist::getViewerName() {
         }
     };
 
-    sendAnilistRequest(queryText, isAuthRequest, callback);
+    //sendAnilistRequest(queryText, isAuthRequest, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
 // Helper function which makes variables optional
-void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, std::function<void(const QJsonObject&)> callback) {
-    sendAnilistRequest(queryText, isAuthRequest, QJsonObject(), callback);
+void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, RequestType requestType) {
+    sendAnilistRequest(queryText, isAuthRequest, QJsonObject(), requestType);
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, const QJsonObject& variables, std::function<void(const QJsonObject&)> callback) {
+void Anilist::sendAnilistRequest(const QString& queryText, bool isAuthRequest, const QJsonObject& variables, RequestType requestType) {
     NetworkManager::PostRequest postRequest = constructSearch(queryText, isAuthRequest, variables);
     QNetworkReply* reply = m_netRequest.sendPostRequest(postRequest);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, callback]() {
-        getSearchData(reply, callback);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, requestType]() {
+        QJsonObject data = getSearchData(reply);
+        emit anilistDataReceived(requestType, data);
+        reply->deleteLater();
     });
 }
 // --------------------------------------------------------------------------------------------------------------------------
-void Anilist::getSearchData(QNetworkReply* reply, std::function<void(const QJsonObject&)> callback) {
+void Anilist::handleAnilistData(RequestType requestType, const QJsonObject& data) {
+    switch (requestType) {
+    case RequestType::PopulateDatabase:
+    {
+        processViewerLists(data);
+        break;
+    }
+    case RequestType::UpdateDatabase:
+    {
+        processViewerLists(data);
+        break;
+    }
+    case RequestType::FetchAnimeImage:
+
+        break;
+        // Add more cases as needed
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+QJsonObject Anilist::getSearchData(QNetworkReply* reply) {
     QVariant statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
     if (!statusCode.isValid()) {
         qDebug() << "Failed to get HTTP status code.";
-        return;
+        return QJsonObject();
     }
 
     int statusCodeInt = statusCode.toInt();
@@ -240,7 +261,7 @@ void Anilist::getSearchData(QNetworkReply* reply, std::function<void(const QJson
 
     if (reply->error() != QNetworkReply::NoError) {
         qDebug() << "Error:" << reply->errorString();
-        return;
+        return QJsonObject();
     }
 
     QByteArray responseData = reply->readAll();
@@ -250,9 +271,9 @@ void Anilist::getSearchData(QNetworkReply* reply, std::function<void(const QJson
     QJsonObject responseObject = responseDoc.object();
     QJsonObject data = responseObject["data"].toObject();
 
-    callback(data);
-
     reply->deleteLater();
+
+    return data;
 }
 // --------------------------------------------------------------------------------------------------------------------------
 NetworkManager::PostRequest Anilist::constructSearch(QString queryText, bool authorized, QJsonObject variables) {
@@ -301,19 +322,38 @@ QString Anilist::getAnimeImage(int id) {
 
     if (!QFile::exists(imagePath)) {
         // Image file does not exist, initiate search
-        searchAnime(id, [this, id, imagePath](const QJsonObject& animeData) -> void {
-            Anime animeObj(animeData);
-
-            qDebug() << "Received anime data for ID:" << id;
-            qDebug() << "Anime image link:" << animeObj.imageLink;
-
-            // Example: Download and save image
-            // downloadAndSaveImage(animeObj.imageLink, imagePath);
-        });
+        fetchAnimeData(id, RequestType::FetchAnimeImage);
     }
 
     return imagePath;
 }
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::fetchAnimeData(int id, RequestType requestType) {
+    Resources resources;
+    QString queryText = resources.readResource(AppResourceKey::ALQueryMedia).toString();
+    QString mediaFields = resources.readResource(AppResourceKey::ALQueryMLFields).toString();
+    queryText.replace("{mediaFields}", mediaFields);
+
+    QJsonObject variables;
+    variables["id"] = id;
+
+    bool isAuthRequest = true;
+
+    sendAnilistRequest(queryText, isAuthRequest, variables, requestType);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void Anilist::handleFetchAnimeImage(const QJsonObject& animeData) {
+    Anime animeObj(animeData);
+
+    qDebug() << "Received anime data for ID:" << animeObj.id;
+    qDebug() << "Anime image link:" << animeObj.imageLink;
+
+    QString imagePath = QString("images/%1.png").arg(animeObj.id);
+
+    // downloadAndSaveImage(animeObj.imageLink, imagePath);
+}
+// --------------------------------------------------------------------------------------------------------------------------
+
 // --------------------------------------------------------------------------------------------------------------------------
 void Anilist::writeAnimeToDatabase(const Anime& entry) {
     //QStringList tables = createDBTables();

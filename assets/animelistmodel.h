@@ -13,11 +13,13 @@ public:
         AnimeIdRole = Qt::UserRole,
         TitleEnglishRole,
         TitleRomajiRole,
+        SortTitleRole,
         ProgressRole,
         ScoreRole,
         StatusRole,
         FormatRole,
-        SortTitleRole
+        SeasonRole,
+        SeasonYearRole
     };
 
     QHash<int, QByteArray> roleNames() const override;

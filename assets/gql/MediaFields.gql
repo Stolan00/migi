@@ -6,21 +6,29 @@ title {
   native(stylised: true)
   userPreferred
 }
+season
+seasonYear
 format
 status
 description
+duration
 startDate { year month day }
 endDate { year month day }
 episodes
+chapters
+volumes
 duration
 countryOfOrigin
 trailer { id site }
 updatedAt
 coverImage { large }
+bannerImage
 genres
 synonyms
 averageScore
+meanScore
 popularity
 studios { edges { isMain node { name id } } }
 nextAiringEpisode { airingAt episode }
 isFavourite
+tags { id name description category isGeneralSpoiler isMediaSpoiler}

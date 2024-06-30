@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS Entry (
     progress INTEGER,
     repeat INTEGER,
     score INTEGER,
+    isFavourite BOOLEAN,
     startedDay INTEGER,
     startedMonth INTEGER,
     startedYear INTEGER,

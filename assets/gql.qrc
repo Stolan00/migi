@@ -18,6 +18,8 @@
         <file alias="CreateGenreTable.sql">sql/tables/CreateGenreTable.sql</file>
         <file alias="CreateStudioTable.sql">sql/tables/CreateStudioTable.sql</file>
         <file alias="CreateAnimeStudioTable.sql">sql/tables/CreateAnimeStudioTable.sql</file>
+        <file alias="CreateSeasonTable.sql">sql/tables/CreateSeasonTable.sql</file>
+        <file alias="CreateAnimeSeasonTable.sql">sql/tables/CreateAnimeSeasonTable.sql</file>
     </qresource>
 
     <qresource prefix="/assets/sql/triggers">

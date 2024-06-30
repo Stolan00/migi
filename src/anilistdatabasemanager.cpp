@@ -27,6 +27,10 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
     animeStudioTable.setTable("AnimeStudio");
     animeStudioTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
 
+    QSqlTableModel animeSeasonTable;
+    animeSeasonTable.setTable("AnimeSeason");
+    animeSeasonTable.setEditStrategy(QSqlTableModel::EditStrategy::OnManualSubmit);
+
     m_dbManager.executeSqlScript(toString(AppResourceKey::SQLPopulateTables));
 
     if (!animeTable.select() || !entryTable.select() || !animeGenreTable.select() || !studioTable.select()) {
@@ -42,7 +46,11 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
     try {
         for (const Anime& anime : mediaList) {
             insertAnime(animeTable, anime);
+
             insertEntry(entryTable, anime);
+
+            insertAnimeSeason(animeSeasonTable, anime);
+
             for (const QString& genre : anime.genres) {
                 insertAnimeGenre(animeGenreTable, anime, genre);
             }
@@ -69,6 +77,11 @@ void AnilistDatabaseManager::addListsToDB(const QList<Anime> &mediaList) {
             qDebug() << "Failed to submit all Studio records:" << studioTable.lastError();
             throw std::runtime_error("Failed to submit Studio records");
         }
+        if (!animeSeasonTable.submitAll()) {
+            qDebug() << "Failed to submit all Season records:" << animeSeasonTable.lastError();
+            throw std::runtime_error("Failed to submit Season records");
+        }
+
 
         if (!m_db.commit()) {
             qDebug() << "Failed to commit transaction:" << m_db.lastError();
@@ -177,7 +190,7 @@ void AnilistDatabaseManager::insertStudio(QSqlTableModel &studioTable, const Ani
         return;
     }
 
-    qDebug() << "Row count after select with filter for studioId:" << studio.studioId << studioTable.rowCount();
+    //qDebug() << "Row count after select with filter for studioId:" << studio.studioId << studioTable.rowCount();
 
     if (studioTable.rowCount() == 0) {
         // Studio does not exist, proceed with insertion
@@ -248,6 +261,20 @@ void AnilistDatabaseManager::insertAnimeStudio(QSqlTableModel &animeStudioTable,
     animeStudioTable.setFilter("");
     if (!animeStudioTable.select()) {
         qDebug() << "Failed to select AnimeStudio table after clearing filter:" << animeStudioTable.lastError();
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnilistDatabaseManager::insertAnimeSeason(QSqlTableModel& animeSeasonTable, const Anime &anime) {
+    QSqlRecord newAnimeSeasonRecord = animeSeasonTable.record();
+    newAnimeSeasonRecord.setValue("seasonId",  static_cast<int>(anime.season));
+    newAnimeSeasonRecord.setValue("seasonYear", anime.seasonYear);
+    newAnimeSeasonRecord.setValue("animeId", anime.id);
+
+    if (!animeSeasonTable.insertRecord(-1, newAnimeSeasonRecord)) {
+        qDebug() << "Failed to insert record:" << animeSeasonTable.lastError().text();
+        throw std::runtime_error("Database insertion error");
+    } else {
+        qDebug() << "Inserted record for Season: for Anime ID:" << anime.id;
     }
 }
 // --------------------------------------------------------------------------------------------------------------------------
