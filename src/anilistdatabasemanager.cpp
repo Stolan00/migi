@@ -224,7 +224,7 @@ void AnilistDatabaseManager::insertStudio(QSqlTableModel &studioTable, const Ani
             throw std::runtime_error("Database submission error");
         }
     } else {
-        qDebug() << "Studio already exists for studioId:" << studio.studioId;
+        //qDebug() << "Studio already exists for studioId:" << studio.studioId;
     }
 
     // Clear the filter and refresh table state
@@ -318,7 +318,7 @@ void AnilistDatabaseManager::insertAnimeSynonym(QSqlTableModel& animeSynonymTabl
     // Check if any records exist with the same animeId and synonym
     if (animeSynonymTable.rowCount() > 0) {
         // Debug statement for when a duplicate is found
-        qDebug() << "Duplicate synonym found for Anime ID:" << anime.id << "Synonym:" << synonym;
+        //qDebug() << "Duplicate synonym found for Anime ID:" << anime.id << "Synonym:" << synonym;
     } else {
         // Clear the filter before inserting a new record
         animeSynonymTable.setFilter("");

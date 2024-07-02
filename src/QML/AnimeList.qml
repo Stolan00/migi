@@ -7,86 +7,99 @@ Item {
     width: parent.width - 220
     height: 300
 
-    ListView {
-        id: animeListView
-        width: parent.width
-        height: parent.height
+    TableView {
+        id: animeTableView
+        anchors.fill: parent
+        anchors.topMargin: 30 // Make room for the header
+        flickDeceleration: 10000
+        maximumFlickVelocity: 3000
+
+        columnWidthProvider: function (column) {
+            switch (column) {
+                case 0: return 60  // Image column
+                case 1: return animeTableView.width * 0.4  // Anime title
+                case 2: return animeTableView.width * 0.25 // Progress
+                case 3: return animeTableView.width * 0.15 // Score
+                case 4: return animeTableView.width * 0.1  // Type
+                default: return 0
+            }
+        }
+        rowHeightProvider: function (row) { return 80; }
 
         model: AnimeListModel {
             id: animeListModel
         }
 
-        delegate: Loader {
-            width: animeListContainer.width
-            height: 150 // Adjust height according to your needs
-            sourceComponent: animeItemDelegate
-            property var modelData: model
-        }
+        delegate: Rectangle {
+            implicitHeight: 80
+            color: row % 2 === 0 ? "lightslategray" : "slategray"
 
-        flickDeceleration: 10000
-        maximumFlickVelocity: 3000
-    }
-
-    // Define animeItemDelegate component here
-    Component {
-        id: animeItemDelegate
-
-        Item {
-            width: animeListContainer.width
-            height: 150 // Adjust height according to your needs
-            Row {
-                spacing: 10
+            Item {
+                anchors.fill: parent
+                anchors.margins: 5
 
                 Image {
                     width: 50
-                    height: 75
+                    height: 70
                     fillMode: Image.PreserveAspectFit
-                    source: modelData && modelData.anime_id ? "file:///" + getAnimeImageSource(modelData.anime_id) : ""
+                    source: column === 0 ? "file:///" + getAnimeImageSource(model.anime_id) : ""
+                    visible: column === 0
                 }
 
-                Column {
-                    spacing: 5
-
-                    Text {
-                        text: modelData ? (modelData.titleEnglish && modelData.titleEnglish !== "" ? modelData.titleEnglish : modelData.titleRomaji) : ""
-                        wrapMode: Text.WordWrap
-                        font.family: 'Helvetica'
-                    }
-
-                    Row {
-                        spacing: 10
-
-                        Text {
-                            text: modelData ? "Progress: " +  modelData.progress : ""
-                            wrapMode: Text.WordWrap
-                            font.family: 'Helvetica'
-                        }
-
-                        Text {
-                            text: modelData ? "Score: " +  modelData.score : ""
-                            wrapMode: Text.WordWrap
-                            font.family: 'Helvetica'
-                        }
-
-                        Text {
-                            text: modelData ? modelData.type : ""
-                            wrapMode: Text.WordWrap
-                            font.family: 'Helvetica'
+                Text {
+                    anchors.fill: parent
+                    verticalAlignment: Text.AlignVCenter
+                    text: {
+                        switch (column) {
+                            case 1: return model.titleEnglish && model.titleEnglish !== "" ? model.titleEnglish : model.titleRomaji
+                            case 2: return model.progress + " / " + model.episodes
+                            case 3: return model.score
+                            case 4: return model.type
+                            default: return ""
                         }
                     }
+                    visible: column !== 0
+                    elide: Text.ElideRight
+                    font.family: 'Helvetica'
                 }
             }
         }
     }
 
-    // Functions and logic specific to your application
+    // Header
+    Row {
+        id: header
+        width: parent.width
+        height: 30
+        z: 1 // Ensure header is above the TableView
+
+        Repeater {
+            model: ["", "Anime title", "Progress", "Score", "Type"]
+            Rectangle {
+                width: animeTableView.columnWidthProvider(index)
+                height: parent.height
+                color: "#e0e0e0"
+                border.width: 1
+                border.color: "#c0c0c0"
+
+                Text {
+                    anchors.centerIn: parent
+                    text: modelData
+                    font.bold: true
+                    font.family: 'Helvetica'
+                }
+            }
+        }
+    }
+
+    // Functions remain the same
     function setStatusFilter(id) {
         animeListModel.setStatusFilter(id)
     }
 
     function getAnimeImageSource(id) {
         if (anilist === null || anilist === undefined) {
-            return "path/to/placeholder.png"; // Return a placeholder image path if anilist is not available
+            return "path/to/placeholder.png";
         }
         return anilist.getAnimeImage(id);
     }
@@ -95,7 +108,6 @@ Item {
         animeListModel.clear();
         for (var i = 0; i < animeData.length; i++) {
             animeListModel.append(animeData[i]);
-            console.log(animeData[i]);
         }
         console.log("Updated list with data: ", animeData)
     }

@@ -47,7 +47,7 @@ void AnimeListModel::createTable()
             JOIN
                 EntryStatus es ON e.status = es.statusId
             JOIN
-                (SELECT animeId, GROUP_CONCAT(synonym, ';; ') AS synonyms
+                (SELECT animeId, GROUP_CONCAT(synonym, CHAR(31)) AS synonyms
                  FROM AnimeSynonym
                  GROUP BY animeId) ans ON ans.animeId = a.id
             JOIN

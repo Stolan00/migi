@@ -123,3 +123,31 @@ AFTER UPDATE ON AnimeStudio
 BEGIN
     UPDATE AnimeStudio SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
 END;
+
+-- Trigger for Season table (AFTER INSERT)
+CREATE TRIGGER IF NOT EXISTS before_insert_Season_Modified
+AFTER INSERT ON Season
+BEGIN
+    UPDATE Season SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for Season table (after update)
+CREATE TRIGGER IF NOT EXISTS after_update_Season_Modified
+AFTER UPDATE ON Season
+BEGIN
+    UPDATE Season SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for AnimeSeason table (AFTER INSERT)
+CREATE TRIGGER IF NOT EXISTS before_insert_AnimeSeason_Modified
+AFTER INSERT ON AnimeSeason
+BEGIN
+    UPDATE AnimeSeason SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
+
+-- Trigger for AnimeSeason table (after update)
+CREATE TRIGGER IF NOT EXISTS after_update_AnimeSeason_Modified
+AFTER UPDATE ON AnimeSeason
+BEGIN
+    UPDATE AnimeSeason SET Modified = strftime('%s', 'now') WHERE rowid = NEW.rowid;
+END;
