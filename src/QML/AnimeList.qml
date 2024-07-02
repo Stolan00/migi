@@ -4,86 +4,109 @@ import com.migi.models
 
 Item {
     id: animeListContainer
-    width: parent.width - 220
-    height: 300
+    width: parent.width
+    height: parent.height
 
-    TableView {
-        id: animeTableView
+    Rectangle {
+        id: tableContainer
         anchors.fill: parent
-        anchors.topMargin: 30 // Make room for the header
-        flickDeceleration: 10000
-        maximumFlickVelocity: 3000
-        property int rowHeight: 100
+        anchors.topMargin: header.height
+        clip: true
 
-        columnWidthProvider: function (column) {
-            switch (column) {
-                case 0: return 60  // Image column
-                case 1: return animeTableView.width * 0.4  // Anime title
-                case 2: return animeTableView.width * 0.25 // Progress
-                case 3: return animeTableView.width * 0.15 // Score
-                case 4: return animeTableView.width * 0.1  // Type
-                default: return 0
+        TableView {
+            id: animeTableView
+            anchors.fill: parent
+            anchors.topMargin: 0
+            boundsBehavior: Flickable.StopAtBounds
+
+            columnWidthProvider: function (column) {
+                switch (column) {
+                    case 0: return 60  // Image column
+                    case 1: return tableContainer.width * 0.4  // Anime title
+                    case 2: return tableContainer.width * 0.25 // Progress
+                    case 3: return tableContainer.width * 0.15 // Score
+                    case 4: return tableContainer.width * 0.1  // Type
+                    default: return 0
+                }
             }
-        }
-        rowHeightProvider: function (row) { return rowHeight; }
+            rowHeightProvider: function (row) { return rowHeight; }
 
-        model: AnimeListModel {
-            id: animeListModel
-        }
+            model: AnimeListModel {
+                id: animeListModel
+            }
 
-        delegate: Rectangle {
-            implicitHeight: 80
-            color: row % 2 === 0 ? "lightslategray" : "slategray"
-
-            property var animeItem: model
-
-            Item {
-                anchors.fill: parent
-                anchors.margins: 5
-
-                Image {
-                    anchors.fill: parent
-                    fillMode: Image.PreserveAspectFit
-                    source: column === 0 ? "file:///" + getAnimeImageSource(animeItem.anime_id) : ""
-                    visible: column === 0
+            Connections {
+                target: animeListModel
+                function onDataChanged(topLeft, bottomRight, roles) {
+                    console.log("Data changed for rows", topLeft.row, "to", bottomRight.row)
+                    refreshView()
                 }
+            }
 
-                Text {
+            delegate: Rectangle {
+                implicitHeight: 80
+                implicitWidth: animeTableView.width
+                color: row % 2 === 0 ? "lightslategray" : "slategray"
+
+                property var animeItem: model
+
+                Item {
                     anchors.fill: parent
-                    verticalAlignment: Text.AlignVCenter
-                    text: {
-                        switch (column) {
-                            case 1: return animeItem.titleEnglish && animeItem.titleEnglish !== "" ? animeItem.titleEnglish : animeItem.titleRomaji
-                            case 2: return animeItem.progress + " / " + animeItem.episodes
-                            case 4: return animeItem.type
-                            default: return ""
+                    anchors.margins: 5
+
+                    Image {
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectFit
+                        source: column === 0 ? "file:///" + getAnimeImageSource(animeItem.anime_id) : ""
+                        visible: column === 0
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        verticalAlignment: Text.AlignVCenter
+                        text: {
+                            switch (column) {
+                                case 1: return animeItem.titleEnglish && animeItem.titleEnglish !== "" ? animeItem.titleEnglish : animeItem.titleRomaji
+                                case 2: return animeItem.progress + " / " + animeItem.episodes
+                                case 4: return animeItem.type
+                                default: return ""
+                            }
                         }
+                        visible: column !== 0 && column !== 3
+                        elide: Text.ElideRight
+                        font.family: 'Helvetica'
+                        color: "white"
                     }
-                    visible: column !== 0 && column !== 3
-                    elide: Text.ElideRight
-                    font.family: 'Helvetica'
-                    color: "white"
-                }
 
-                ComboBox {
-                    // Use a different property name to avoid conflicts
-                    property var animeData: parent.parent.animeItem
-                    anchors.fill: parent
-                    visible: column === 3
-                    model: ["0", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
-                    currentIndex: Math.max(0, (animeData.score / 5 - 1))
-                    onActivated: {
-                        console.log(animeData.score, currentIndex)
-                        //animeData.setData(animeListModel.index(row, column), parseFloat(currentText), 263) // Assuming 263 is the role for score
-                    }
-                    delegate: ItemDelegate {
-                        width: parent.width
-                        contentItem: Text {
-                            text: modelData
-                            color: "black"
-                            font: parent.font
-                            elide: Text.ElideRight
-                            verticalAlignment: Text.AlignVCenter
+                    ComboBox {
+                        property var animeData: parent.parent.animeItem
+                        property int currentRow: row
+                        property int currentColumn: column
+                        visible: column === 3
+                        model: ["0", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
+                        currentIndex: Math.max(0, (animeData.score / 10) * 2 - 1)
+                        onActivated: {
+                                var newScore = parseFloat(model[currentIndex]) * 10;
+                                var modelIndex = animeListModel.index(currentRow, currentColumn);
+                                var scoreRole = 262; // Assuming 262 is the role for score
+
+                                // Update the model with the new score
+                                animeListModel.setData(modelIndex, newScore, scoreRole);
+                                console.log("Updating score for row", currentRow, "to", newScore);
+
+                                // Force refresh of the view
+                                refreshView()
+                            }
+
+                        delegate: ItemDelegate {
+                            width: parent.width
+                            contentItem: Text {
+                                text: modelData
+                                color: "black"
+                                font: parent.font
+                                elide: Text.ElideRight
+                                verticalAlignment: Text.AlignVCenter
+                            }
                         }
                     }
                 }
@@ -91,12 +114,11 @@ Item {
         }
     }
 
-    // Header (unchanged)
     Row {
         id: header
-        width: parent.width
+        width: tableContainer.width
         height: 30
-        z: 1 // Ensure header is above the TableView
+        z: 2
         Repeater {
             model: ["", "Anime title", "Progress", "Score", "Type"]
             Rectangle {
@@ -118,6 +140,7 @@ Item {
     // Functions (unchanged)
     function setStatusFilter(id) {
         animeListModel.setStatusFilter(id)
+        refreshView()
     }
 
     function getAnimeImageSource(id) {
@@ -133,5 +156,10 @@ Item {
             animeListModel.append(animeData[i]);
         }
         console.log("Updated list with data: ", animeData)
+    }
+
+    function refreshView() {
+        animeTableView.contentY = 0
+        animeTableView.forceLayout()
     }
 }

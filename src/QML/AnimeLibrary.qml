@@ -10,11 +10,13 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 0  // Ensure no extra space between components
 
         TabBar {
             id: tabBar
             Layout.fillWidth: true
-            currentIndex: 0
+            Layout.preferredHeight: 40  // Set a fixed height for the TabBar
+            z: 3  // Ensure TabBar is above everything else
 
             Repeater {
                 model: [
@@ -44,6 +46,7 @@ Item {
             id: animeLibraryList
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.topMargin: 5  // Add a small margin below the TabBar
         }
     }
 

@@ -151,6 +151,45 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
+// TODO: TRIGGER ANILIST MUTATION SO CHANGES ARE REFLECTED ON ACCOUNT
+bool AnimeListModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+    if (!index.isValid())
+        return false;
+
+    QString columnName = roleNames().value(role);
+    if (columnName.isEmpty())
+        return false;
+
+    // Get the anime_id for the current row
+    int animeId = data(index.sibling(index.row(), 0), AnimeIdRole).toInt();
+
+    QSqlQuery query;
+    query.prepare(QString("UPDATE animeListView SET %1 = :value WHERE anime_id = :id").arg(columnName));
+    query.bindValue(":value", value);
+    query.bindValue(":id", animeId);
+
+    qDebug() << "Executing query:" << query.lastQuery();
+    qDebug() << "Anime ID:" << animeId << "New value:" << value;
+
+    if (!query.exec()) {
+        qWarning() << "Failed to update database:" << query.lastError();
+        return false;
+    }
+
+    // Update the internal data
+    if (QSqlTableModel::setData(index, value, role)) {
+        // Emit dataChanged for the entire row
+        emit dataChanged(index.sibling(index.row(), 0), index.sibling(index.row(), columnCount() - 1), QVector<int>() << role << Qt::DisplayRole);
+        return true;
+    }
+    return false;
+}
+// --------------------------------------------------------------------------------------------------------------------------
+void AnimeListModel::forceUpdate() {
+    beginResetModel();
+    endResetModel();
+}
+// --------------------------------------------------------------------------------------------------------------------------
 Qt::ItemFlags AnimeListModel::flags(const QModelIndex &index) const {
     Q_UNUSED(index)
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
@@ -158,9 +197,16 @@ Qt::ItemFlags AnimeListModel::flags(const QModelIndex &index) const {
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::setStatusFilter(int statusId) {
 
+    beginResetModel();
+
     setFilter(QString("statusId = %1").arg(statusId));
 
     setSort(SortTitleRole - Qt::UserRole, Qt::AscendingOrder);
+
+    endResetModel();
+
+    emit layoutChanged();
+
     select();
 }
 // --------------------------------------------------------------------------------------------------------------------------
