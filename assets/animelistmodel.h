@@ -29,6 +29,8 @@ public:
 
     Q_INVOKABLE void setStatusFilter(int statusId);
 
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+
 signals:
 private:
     static void createTable();

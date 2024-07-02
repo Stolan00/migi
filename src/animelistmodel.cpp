@@ -151,6 +151,11 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------
+Qt::ItemFlags AnimeListModel::flags(const QModelIndex &index) const {
+    Q_UNUSED(index)
+    return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
+}
+// --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::setStatusFilter(int statusId) {
 
     setFilter(QString("statusId = %1").arg(statusId));
