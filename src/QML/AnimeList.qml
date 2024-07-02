@@ -71,7 +71,7 @@ Item {
                     anchors.fill: parent
                     visible: column === 3
                     model: ["0", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
-                    currentIndex: Math.max(0, (animeData.score / 10) * 2 - 1)
+                    currentIndex: Math.max(0, (animeData.score / 5 - 1))
                     onActivated: {
                         console.log(animeData.score, currentIndex)
                         //animeData.setData(animeListModel.index(row, column), parseFloat(currentText), 263) // Assuming 263 is the role for score
