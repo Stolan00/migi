@@ -46,6 +46,8 @@ Anime::Anime(const QJsonObject jsonValues) {
     id = animeValues["id"].toInt();
     idMal = animeValues["idMal"].toInt();
 
+    myInfo.isFavourite = animeValues["isFavourite"].toBool();
+
     QJsonObject animeTitle = animeValues["title"].toObject();
     titleRomaji  = animeTitle["romaji"].toString();
     titleEnglish = animeTitle["english"].toString();
@@ -139,6 +141,7 @@ QHash<QString, QVariant> Anime::myInfoAsHash() const {
         { "notes",    myInfo.notes    },
         { "status", static_cast<int>(myInfo.status) },
         { "private", myInfo.isPrivate },
+        { "isFavourite", myInfo.isFavourite },
     };
 
     return myInfoValues;

@@ -99,7 +99,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: "-"
-                                color: "white"
+                                color: "black"
                                 font.pixelSize: 16
                                 font.bold: true
                             }
@@ -122,7 +122,6 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.margins: 5
                             height: 20
-                            from: 0
                             to: animeItem.episodes
                             value: currentProgress
                         }
@@ -130,7 +129,7 @@ Item {
                         Text {
                             anchors.centerIn: progressBar
                             text: currentProgress + " / " + animeItem.episodes
-                            color: "white"
+                            color: "black"
                             font.pixelSize: 12
                             font.bold: true
                         }
@@ -147,7 +146,7 @@ Item {
                             Text {
                                 anchors.centerIn: parent
                                 text: "+"
-                                color: "white"
+                                color: "black"
                                 font.pixelSize: 16
                                 font.bold: true
                             }

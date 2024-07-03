@@ -70,7 +70,7 @@ public:
 
         QString notes;
 
-        bool isPrivate;
+        bool isPrivate, isFavourite;
 
         int anilistModified;
     };
