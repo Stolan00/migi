@@ -10,17 +10,18 @@ public:
     //Q_INVOKABLE void executeQuery(const QString &query);
 
     enum Roles {
-        AnimeIdRole = Qt::UserRole,
-        TitleEnglishRole,
-        TitleRomajiRole,
-        SortTitleRole,
-        SynonymsRole,
-        ProgressRole,
-        ScoreRole,
-        StatusRole,
-        FormatRole,
-        SeasonRole,
-        SeasonYearRole
+        AnimeIdRole = Qt::UserRole, //256
+        TitleEnglishRole, //257
+        TitleRomajiRole, //258
+        SortTitleRole, //259
+        SynonymsRole, //260
+        ProgressRole, //261
+        EpisodesRole, //262
+        ScoreRole, //263
+        StatusRole, //264
+        FormatRole, //265
+        SeasonRole, //266
+        SeasonYearRole //267
     };
 
     QHash<int, QByteArray> roleNames() const override;

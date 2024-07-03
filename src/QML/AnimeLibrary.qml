@@ -5,11 +5,11 @@ import com.migi.models 1.0
 
 Item {
     id: libraryContainer
-    width: parent.width
-    height: parent.height
+    anchors.fill: parent
 
     ColumnLayout {
         anchors.fill: parent
+        Layout.fillWidth: true
         spacing: 0  // Ensure no extra space between components
 
         TabBar {

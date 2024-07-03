@@ -32,6 +32,7 @@ void AnimeListModel::createTable()
                 COALESCE(a.titleEnglish, a.titleRomaji) as sortTitle,
                 ans.synonyms,
                 e.progress,
+                a.episodes,
                 e.score,
                 es.statusName AS status,
                 es.statusId,
@@ -114,6 +115,7 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[SeasonRole] = "season";
     roles[SeasonYearRole] = "seasonYear";
     roles[SynonymsRole] = "synonyms";
+    roles[EpisodesRole] = "episodes";
 
     return roles;
 }
@@ -148,6 +150,8 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("seasonYear");
     else if (role == SynonymsRole)
         return record.value("synonyms");
+    else if (role == EpisodesRole)
+        return record.value("episodes");
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------

@@ -36,6 +36,7 @@ Window {
 
         // Main content item
         Item {
+            Layout.fillWidth: true
             id: mainContent
             width: parent.width
             height: parent.height
@@ -43,6 +44,7 @@ Window {
 
             RowLayout {
                 anchors.fill: parent
+                Layout.fillWidth: true
 
                 Sidebar {
                     id: sidebar
