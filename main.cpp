@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     connectToDatabase();
 
     qmlRegisterType<AnimeListModel>("com.migi.models", 1, 0, "AnimeListModel");
+    qmlRegisterType<Anilist>("com.migi.anilist", 1, 0, "Anilist");
 
     qmlRegisterSingletonType<Settings>("AppSettings", 1, 0, "Settings", Settings::create);
 

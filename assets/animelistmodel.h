@@ -21,7 +21,8 @@ public:
         StatusRole, //264
         FormatRole, //265
         SeasonRole, //266
-        SeasonYearRole //267
+        SeasonYearRole, //267
+        EntryIdRole //268
     };
 
     QHash<int, QByteArray> roleNames() const override;

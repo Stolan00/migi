@@ -38,7 +38,8 @@ void AnimeListModel::createTable()
                 es.statusId,
                 mf.formatName AS type,
                 s.seasonName AS season,
-                ans_season.seasonYear
+                ans_season.seasonYear,
+                e.id AS entryId
             FROM
                 Anime a
             JOIN
@@ -116,6 +117,7 @@ QHash<int, QByteArray> AnimeListModel::roleNames() const  {
     roles[SeasonYearRole] = "seasonYear";
     roles[SynonymsRole] = "synonyms";
     roles[EpisodesRole] = "episodes";
+    roles [EntryIdRole] = "entryId";
 
     return roles;
 }
@@ -152,6 +154,8 @@ QVariant AnimeListModel::data(const QModelIndex &index, int role) const {
         return record.value("synonyms");
     else if (role == EpisodesRole)
         return record.value("episodes");
+    else if (role == EntryIdRole)
+        return record.value("entryId");
     return QVariant();
 }
 // --------------------------------------------------------------------------------------------------------------------------

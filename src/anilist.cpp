@@ -213,6 +213,11 @@ void Anilist::getViewerName() {
     //sendAnilistRequest(queryText, isAuthRequest, callback);
 }
 // --------------------------------------------------------------------------------------------------------------------------
+void Anilist::updateAnimeEntry(const QString& queryText, bool isAuthRequest, const QVariantMap& variables, RequestType requestType) {
+    QJsonObject jsonVariables = QJsonObject::fromVariantMap(variables);
+    sendAnilistRequest(queryText, isAuthRequest, jsonVariables, requestType);
+}
+// --------------------------------------------------------------------------------------------------------------------------
 // Helper function which makes variables optional
 void Anilist::sendAnilistRequest(const QString& queryText, const bool isAuthRequest, RequestType requestType) {
     sendAnilistRequest(queryText, isAuthRequest, QJsonObject(), requestType);

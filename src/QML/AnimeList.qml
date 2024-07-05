@@ -1,11 +1,25 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import com.migi.models
+import com.migi.anilist
 
 Item {
     id: animeListContainer
     width: parent.width
     height: parent.height
+
+    Timer {
+        id: updateTimer
+        interval: 1000
+        repeat: false
+        property var updateQueue: ({})
+        onTriggered: {
+            for (var entryId in updateQueue) {
+                performProgressUpdate(entryId, updateQueue[entryId])
+            }
+            updateQueue = ({})
+        }
+    }
 
     Rectangle {
         id: tableContainer
@@ -21,20 +35,21 @@ Item {
             boundsBehavior: Flickable.StopAtBounds
 
             columnWidthProvider: function (column) {
-                    var totalWidth = tableContainer.width;
-                    var imageWidth = 60;
-                    var remainingWidth = totalWidth - imageWidth;
+                var totalWidth = tableContainer.width;
+                var imageWidth = 60;
+                var remainingWidth = totalWidth - imageWidth;
 
-                    switch (column) {
-                        case 0: return imageWidth;  // Image column
-                        case 1: return remainingWidth * 0.5;  // Anime title (50% of remaining)
-                        case 2: return remainingWidth * 0.25; // Progress (25% of remaining)
-                        case 3: return remainingWidth * 0.15; // Score (15% of remaining)
-                        case 4: return remainingWidth * 0.10; // Type (10% of remaining)
-                        default: return 0;
-                    }
+                switch (column) {
+                    case 0: return imageWidth;  // Image column
+                    case 1: return remainingWidth * 0.5;  // Anime title (50% of remaining)
+                    case 2: return remainingWidth * 0.25; // Progress (25% of remaining)
+                    case 3: return remainingWidth * 0.15; // Score (15% of remaining)
+                    case 4: return remainingWidth * 0.10; // Type (10% of remaining)
+                    default: return 0;
                 }
-            rowHeightProvider: function (row) { return rowHeight; }
+            }
+
+            rowHeightProvider: function (row) { return 80; }
 
             model: AnimeListModel {
                 id: animeListModel
@@ -109,7 +124,8 @@ Item {
                                 onClicked: {
                                     if (currentProgress > 0) {
                                         currentProgress--
-                                        updateProgress()
+                                        animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
+                                        updateProgress(model.entryId, currentProgress)
                                     }
                                 }
                             }
@@ -156,7 +172,8 @@ Item {
                                 onClicked: {
                                     if (currentProgress < animeItem.episodes) {
                                         currentProgress++
-                                        updateProgress()
+                                        animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
+                                        updateProgress(model.entryId, currentProgress)
                                     }
                                 }
                             }
@@ -171,17 +188,17 @@ Item {
                         model: ["-", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
                         currentIndex: Math.max(0, (animeData.score / 10) * 2 - 1)
                         onActivated: {
-                                var newScore = currentIndex != 0 ? parseFloat(model[currentIndex]) * 10 : 0;
-                                var modelIndex = animeListModel.index(currentRow, currentColumn);
-                                var scoreRole = 263; // Assuming 262 is the role for score
+                            var newScore = currentIndex != 0 ? parseFloat(model[currentIndex]) * 10 : 0;
+                            var modelIndex = animeListModel.index(currentRow, currentColumn);
+                            var scoreRole = 263; // Assuming 263 is the role for score
 
-                                // Update the model with the new score
-                                animeListModel.setData(modelIndex, newScore, scoreRole);
-                                console.log("Updating score for row", currentRow, "to", newScore);
+                            // Update the model with the new score
+                            animeListModel.setData(modelIndex, newScore, scoreRole);
+                            console.log("Updating score for row", currentRow, "to", newScore);
 
-                                // Force refresh of the view
-                                refreshView()
-                            }
+                            // Force refresh of the view
+                            refreshView()
+                        }
 
                         delegate: ItemDelegate {
                             width: parent.width
@@ -194,11 +211,6 @@ Item {
                             }
                         }
                     }
-                }
-
-                function updateProgress() {
-                    animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261) // Assuming 261 is the role for progress
-                    animeTableView.forceLayout()
                 }
 
                 Connections {
@@ -261,5 +273,26 @@ Item {
     function refreshView() {
         animeTableView.contentY = 0
         animeTableView.forceLayout()
+    }
+
+    function updateProgress(entryId, newProgress) {
+        updateTimer.updateQueue[entryId] = newProgress
+        updateTimer.restart()
+    }
+
+    function performProgressUpdate(entryId, newProgress) {
+        const queryText = `
+        mutation ($id: Int, $progress: Int) {
+            SaveMediaListEntry (id: $id, progress: $progress) {
+                id
+                progress
+            }
+        }`;
+        const variables = {
+            "id": entryId,
+            "progress": newProgress
+        };
+        console.log("Updating progress for entry", entryId, "to", newProgress);
+        anilist.updateAnimeEntry(queryText, true, variables, Anilist.RequestType.UpdateAnimeEntry);
     }
 }

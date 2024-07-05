@@ -24,8 +24,11 @@ public:
     enum class RequestType {
         PopulateDatabase,
         UpdateDatabase,
-        FetchAnimeImage
+        FetchAnimeImage,
+
+        UpdateAnimeEntry
     };
+    Q_ENUM(RequestType)
 
     explicit Anilist(QObject *parent = nullptr);
     void configureOAuth2();
@@ -41,6 +44,7 @@ signals:
 public slots:
     void searchAnime();
     void getViewerId();
+    Q_INVOKABLE void updateAnimeEntry(const QString& queryText, bool isAuthRequest, const QVariantMap& variables, RequestType requestType);;
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();
