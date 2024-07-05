@@ -281,6 +281,8 @@ Item {
     }
 
     function performProgressUpdate(entryId, newProgress) {
+        //TODO: probably want to handle errors, either here or in cpp
+        //TODO: may want to define the queryText and variables in the cpp backend instead
         const queryText = `
         mutation ($id: Int, $progress: Int) {
             SaveMediaListEntry (id: $id, progress: $progress) {
