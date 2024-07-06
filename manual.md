@@ -8,7 +8,6 @@ Please note, this is a personal project made with the goal of learning about C++
 # SQLite
 Migi uses a SQLite database to store and keep track of your library locally. This database will be created for you the first time you authenticate your account, and updated as needed. While Migi does rely on this database, it is designed to be portable and user-friendly, and it is possible to make use of it elsewhere. It follows Third Normal Form (3NF), and can easily be used in another client or even serve as a personal backup.
 
-To access it, navigate to Migi's [AppData](https://doc.qt.io/qt-6/qstandardpaths.html#AppDataLocation) folder followed by `/Migi/Migi/Data/db/migi_database.sqlite3`. From there you can directly copy the file and use it as needed.
+To access it, navigate to Migi's [AppData](https://doc.qt.io/qt-6/qstandardpaths.html#AppDataLocation) folder, then go to `/Migi/Migi/Data/db/migi_database.sqlite3`. From there you can directly copy the file and use it as needed.
 
 Various export options are also planned, including markdown and CSV.
-
