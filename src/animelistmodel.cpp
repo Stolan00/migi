@@ -204,6 +204,8 @@ Qt::ItemFlags AnimeListModel::flags(const QModelIndex &index) const {
 }
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::setStatusFilter(int statusId) {
+    //TODO: could easily make an overload function that takes in a string instead and passes an int value to setFilter() based on it. that way i could remove statusId from
+    // AnimeListView.
 
     beginResetModel();
 

@@ -61,6 +61,7 @@ qt_add_qml_module(appanilist_project
         QML_FILES src/QML/AppSettings.qml
         RESOURCES src/QML/qmldir
         SOURCES assets/initdb.h
+        QML_FILES src/QML/AnimeDetail.qml
 )
 
 # Add the assets and src directories to the include directories

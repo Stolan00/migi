@@ -8,6 +8,8 @@ Item {
     width: parent.width
     height: parent.height
 
+    property var animeDetailWindow: null
+
     Timer {
         id: updateTimer
         interval: 1000
@@ -71,6 +73,17 @@ Item {
                 property var animeItem: model
                 property int currentProgress: animeItem.progress
 
+                MouseArea {
+                    anchors.fill: parent
+                    onDoubleClicked: {
+                        openAnimeDetail(animeItem, animeListModel.index(row, 2))
+                    }
+
+                    onClicked: function(mouse) {
+                        mouse.accepted = true
+                    }
+                }
+
                 Item {
                     anchors.fill: parent
                     anchors.margins: 5
@@ -87,11 +100,12 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         text: {
                             switch (column) {
-                                case 1: return animeItem.titleEnglish && animeItem.titleEnglish !== "" ? animeItem.titleEnglish : animeItem.titleRomaji
+                                case 1: return animeItem.titleEnglish || animeItem.titleRomaji
                                 case 4: return animeItem.type
                                 default: return ""
                             }
                         }
+
                         visible: column !== 0 && column !== 2 && column !== 3
                         elide: Text.ElideRight
                         font.family: 'Helvetica'
@@ -102,31 +116,21 @@ Item {
                         anchors.fill: parent
                         visible: column === 2
 
-                        Rectangle {
+                        Button {
                             id: minusButton
                             width: 20
                             height: 20
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
-                            color: "darkgray"
-                            radius: 10
+                            text: "-"
+                            font.pixelSize: 16
+                            font.bold: true
 
-                            Text {
-                                anchors.centerIn: parent
-                                text: "-"
-                                color: "black"
-                                font.pixelSize: 16
-                                font.bold: true
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    if (currentProgress > 0) {
-                                        currentProgress--
-                                        animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
-                                        updateProgress(model.entryId, currentProgress)
-                                    }
+                            onClicked: {
+                                if (currentProgress > 0) {
+                                    currentProgress--
+                                    //animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
+                                    updateProgress(model.entryId, currentProgress, animeListModel.index(row, 2))
                                 }
                             }
                         }
@@ -150,30 +154,21 @@ Item {
                             font.bold: true
                         }
 
-                        Rectangle {
-                            id: plusButton
-                            width: 20
-                            height: 20
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: "darkgray"
-                            radius: 10
-
-                            Text {
-                                anchors.centerIn: parent
+                        Button {
+                                id: plusButton
+                                width: 20
+                                height: 20
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
                                 text: "+"
-                                color: "black"
                                 font.pixelSize: 16
                                 font.bold: true
-                            }
 
-                            MouseArea {
-                                anchors.fill: parent
                                 onClicked: {
                                     if (currentProgress < animeItem.episodes) {
                                         currentProgress++
-                                        animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
-                                        updateProgress(model.entryId, currentProgress)
+                                        //animeListModel.setData(animeListModel.index(row, 2), currentProgress, 261)
+                                        updateProgress(model.entryId, currentProgress, animeListModel.index(row, 2))
                                     }
                                 }
                             }
@@ -186,7 +181,7 @@ Item {
                         property int currentColumn: column
                         visible: column === 3
                         model: ["-", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
-                        currentIndex: Math.max(0, (animeData.score / 10) * 2 - 1)
+                        currentIndex: Math.max(0, (animeItem.score / 5) - 1)
                         onActivated: {
                             var newScore = currentIndex != 0 ? parseFloat(model[currentIndex]) * 10 : 0;
                             var modelIndex = animeListModel.index(currentRow, currentColumn);
@@ -225,7 +220,6 @@ Item {
                 }
             }
         }
-    }
 
     Row {
         id: header
@@ -275,14 +269,18 @@ Item {
         animeTableView.forceLayout()
     }
 
-    function updateProgress(entryId, newProgress) {
+    function updateProgress(entryId, newProgress, modelIndex) {
+        // Update the model
+        if (modelIndex !== undefined) {
+            animeListModel.setData(modelIndex, newProgress, 261)
+        }
+
+        // Queue the update for the server
         updateTimer.updateQueue[entryId] = newProgress
         updateTimer.restart()
     }
 
     function performProgressUpdate(entryId, newProgress) {
-        //TODO: probably want to handle errors, either here or in cpp
-        //TODO: may want to define the queryText and variables in the cpp backend instead
         const queryText = `
         mutation ($id: Int, $progress: Int) {
             SaveMediaListEntry (id: $id, progress: $progress) {
@@ -296,5 +294,32 @@ Item {
         };
         console.log("Updating progress for entry", entryId, "to", newProgress);
         anilist.updateAnimeEntry(queryText, true, variables, Anilist.RequestType.UpdateAnimeEntry);
+    }
+
+    function openAnimeDetail(animeItem, modelIndex) {
+        if (!animeDetailWindow) {
+            var component = Qt.createComponent("AnimeDetail.qml");
+            if (component.status === Component.Ready) {
+                animeDetailWindow = component.createObject(animeListContainer, {
+                    "animeData": animeItem,
+                    "updateProgressFunction": function(entryId, newProgress) {
+                        updateProgress(entryId, newProgress, modelIndex)
+                    }
+                });
+                if (animeDetailWindow) {
+                    animeDetailWindow.visible = true;
+                } else {
+                    console.error("Error creating AnimeDetail window:", component.errorString());
+                }
+            } else if (component.status === Component.Error) {
+                console.error("Error loading AnimeDetail.qml:", component.errorString());
+            }
+        } else {
+            animeDetailWindow.updateAnimeData(animeItem);
+            animeDetailWindow.updateProgressFunction = function(entryId, newProgress) {
+                updateProgress(entryId, newProgress, modelIndex)
+            };
+            animeDetailWindow.visible = true;
+        }
     }
 }
