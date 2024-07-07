@@ -26,7 +26,7 @@ public:
         UpdateDatabase,
         FetchAnimeImage,
 
-        UpdateAnimeEntry
+        UpdateAnimeEntryOnAnilist
     };
     Q_ENUM(RequestType)
 
@@ -44,7 +44,7 @@ signals:
 public slots:
     void searchAnime();
     void getViewerId();
-    Q_INVOKABLE void updateAnimeEntry(const QString& queryText, bool isAuthRequest, const QVariantMap& variables, RequestType requestType);;
+    Q_INVOKABLE void updateAnimeEntryOnAnilist(const QString& queryText, bool isAuthRequest, const QVariantMap& variables, RequestType requestType);;
     //void getViewerList(); //should not be void eventually
     void getViewerLists();
     void getViewerName();

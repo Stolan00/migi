@@ -310,7 +310,7 @@ Item {
             "progress": newProgress
         }
         console.log("Updating progress for entry", entryId, "to", newProgress)
-        anilist.updateAnimeEntry(queryText, true, variables, Anilist.RequestType.UpdateAnimeEntry)
+        anilist.updateAnimeEntryOnAnilist(queryText, true, variables, Anilist.RequestType.UpdateAnimeEntryOnAnilist)
 
         console.log("Calling refreshView from performProgressUpdate")
         refreshView()
