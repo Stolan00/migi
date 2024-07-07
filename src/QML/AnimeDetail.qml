@@ -20,12 +20,12 @@ Window {
     function updateDetails() {
         if (animeData) {
             titleText.text = animeData.titleEnglish || animeData.titleRomaji
-            episodesSpinBox.updating = true;
+            //episodesSpinBox.updating = true;
             episodesSpinBox.value = animeData.progress;
-            episodesSpinBox.updating = false;
-            scoreComboBox.updating = true;
+            //episodesSpinBox.updating = false;
+            //scoreComboBox.updating = true;
             scoreComboBox.currentIndex = Math.max(0, (animeData.score / 5) - 1);
-            scoreComboBox.updating = false;
+            //scoreComboBox.updating = false;
             // Update other fields...
         }
     }
@@ -47,28 +47,28 @@ Window {
                 from: 0
                 to: animeData ? animeData.episodes : 0
                 value: animeData ? animeData.progress : 0
-                property bool updating: false
+                //property bool updating: false
 
-                onValueChanged: {
-                    if (!updating && animeData && updateProgressFunction) {
-                        updateProgressFunction(animeData.entryId, value)
-                    }
-                }
+                // onValueChanged: {
+                //     if (!updating && animeData && updateProgressFunction) {
+                //         updateProgressFunction(animeData.entryId, value)
+                //     }
+                // }
             }
         }
 
         ComboBox {
             id: scoreComboBox
             model: ["-", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10"]
-            property bool updating: false
-            onCurrentIndexChanged: {
-                if (!updating && animeData) {
-                    var newScore = currentIndex !== 0 ? parseFloat(model[currentIndex]) * 10 : 0
-                    console.log("Score value changed")
-                    // Call your update function here
-                    // updateScore(animeData.entryId, newScore)
-                }
-            }
+            //property bool updating: false
+            // onCurrentIndexChanged: {
+            //     if (!updating && animeData) {
+            //         var newScore = currentIndex !== 0 ? parseFloat(model[currentIndex]) * 10 : 0
+            //         console.log("Score value changed")
+            //         // Call your update function here
+            //         // updateScore(animeData.entryId, newScore)
+            //     }
+            // }
         }
 
         Button {
@@ -77,8 +77,12 @@ Window {
             font.pixelSize: 16
             font.bold: true
             onClicked: {
+                console.log("OK button clicked")
                 if (updateProgressFunction && animeData) {
+                    console.log("Calling updateProgressFunction with:", animeData.entryId, episodesSpinBox.value)
                     updateProgressFunction(animeData.entryId, episodesSpinBox.value)
+                } else {
+                    console.log("updateProgressFunction or animeData is null:", updateProgressFunction, animeData)
                 }
                 detailWindow.close()
             }

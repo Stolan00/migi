@@ -49,7 +49,7 @@ void AnimeListModel::createTable()
             JOIN
                 EntryStatus es ON e.status = es.statusId
             JOIN
-                (SELECT animeId, GROUP_CONCAT(synonym, CHAR(31)) AS synonyms
+                (SELECT animeId, GROUP_CONCAT(synonym, ';') AS synonyms
                  FROM AnimeSynonym
                  GROUP BY animeId) ans ON ans.animeId = a.id
             JOIN
@@ -168,16 +168,20 @@ bool AnimeListModel::setData(const QModelIndex &index, const QVariant &value, in
     if (columnName.isEmpty())
         return false;
 
-    // Get the anime_id for the current row
-    int animeId = data(index.sibling(index.row(), 0), AnimeIdRole).toInt();
+    // Get the entryId for the current row
+    int entryId = data(index.sibling(index.row(), 0), EntryIdRole).toInt();
 
     QSqlQuery query;
-    query.prepare(QString("UPDATE animeListView SET %1 = :value WHERE anime_id = :id").arg(columnName));
-    query.bindValue(":value", value);
-    query.bindValue(":id", animeId);
+    if (columnName == "progress" || columnName == "score") {
+        query.prepare(QString("UPDATE Entry SET %1 = :value WHERE id = :id").arg(columnName));
+        query.bindValue(":value", value);
+        query.bindValue(":id", entryId);
+    } else {
+        return false; // Only allow updates to progress and score
+    }
 
     qDebug() << "Executing query:" << query.lastQuery();
-    qDebug() << "Anime ID:" << animeId << "New value:" << value;
+    qDebug() << "Entry ID:" << entryId << "New value:" << value;
 
     if (!query.exec()) {
         qWarning() << "Failed to update database:" << query.lastError();
@@ -186,8 +190,11 @@ bool AnimeListModel::setData(const QModelIndex &index, const QVariant &value, in
 
     // Update the internal data
     if (QSqlTableModel::setData(index, value, role)) {
-        // Emit dataChanged for the entire row
+        qDebug() << "Emitting dataChanged signal for row" << index.row() << "column" << index.column() << "role" << role;
         emit dataChanged(index.sibling(index.row(), 0), index.sibling(index.row(), columnCount() - 1), QVector<int>() << role << Qt::DisplayRole);
+
+        forceUpdate();
+
         return true;
     }
     return false;
@@ -195,6 +202,7 @@ bool AnimeListModel::setData(const QModelIndex &index, const QVariant &value, in
 // --------------------------------------------------------------------------------------------------------------------------
 void AnimeListModel::forceUpdate() {
     beginResetModel();
+    select();
     endResetModel();
 }
 // --------------------------------------------------------------------------------------------------------------------------

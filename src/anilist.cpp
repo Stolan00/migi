@@ -9,7 +9,7 @@ Anilist::Anilist(QObject *parent) : QObject(parent) {
     connectSignals();
     initializeAccountInfo();
     //updateDatabase();
-    populateDatabase(); // For now I'm doing this instead of checking for updates manually
+    populateDatabase();
     qDebug() << "DONE";
 
     connect(this, &Anilist::anilistDataReceived, this, &Anilist::handleAnilistData);
